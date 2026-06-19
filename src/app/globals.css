@@ -1,26 +1,812 @@
+/* ==========================================================================
+   MediCare Connect — Visual Identity
+   globals.css
+
+   Modern SaaS / High-Utility healthcare UI. Indigo-Cyan palette, tonal
+   layering, subtle glassmorphism on overlays, high-radius "app-like" shapes.
+   Light theme is default; dark theme uses its own dedicated palette
+   (not derived) per the brief's native dark-mode spec.
+   ========================================================================== */
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* --------------------------------------------------------------------------
+   Theme tokens (Tailwind v4 @theme inline)
+   -------------------------------------------------------------------------- */
+@theme inline {
+  /* Colors -------------------------------------------------------------- */
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-variant: var(--surface-variant);
+
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-inverse-primary: var(--inverse-primary);
+
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-surface-tint: var(--surface-tint);
+
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+
+  --color-error: var(--error);
+  --color-on-error: var(--on-error);
+  --color-error-container: var(--error-container);
+  --color-on-error-container: var(--on-error-container);
+
+  --color-primary-fixed: var(--primary-fixed);
+  --color-primary-fixed-dim: var(--primary-fixed-dim);
+  --color-on-primary-fixed: var(--on-primary-fixed);
+  --color-on-primary-fixed-variant: var(--on-primary-fixed-variant);
+
+  --color-secondary-fixed: var(--secondary-fixed);
+  --color-secondary-fixed-dim: var(--secondary-fixed-dim);
+  --color-on-secondary-fixed: var(--on-secondary-fixed);
+  --color-on-secondary-fixed-variant: var(--on-secondary-fixed-variant);
+
+  --color-tertiary-fixed: var(--tertiary-fixed);
+  --color-tertiary-fixed-dim: var(--tertiary-fixed-dim);
+  --color-on-tertiary-fixed: var(--on-tertiary-fixed);
+  --color-on-tertiary-fixed-variant: var(--on-tertiary-fixed-variant);
+
+  --color-background: var(--background);
+  --color-on-background: var(--on-background);
+
+  /* Typography ------------------------------------------------------------ */
+  --font-sans: var(--font-family-base), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-family-base), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii — generic scale ---------------------------------------------------*/
+  --radius-sm: var(--rounded-sm);
+  --radius-DEFAULT: var(--rounded-default);
+  --radius-md: var(--rounded-md);
+  --radius-lg: var(--rounded-lg);
+  --radius-xl: var(--rounded-xl);
+  --radius-full: var(--rounded-full);
+
+  /* Radii — semantic shape language ----------------------------------------*/
+  --radius-card: var(--shape-card);
+  --radius-control: var(--shape-control);
+  --radius-pill: var(--shape-pill);
+
+  /* Spacing ----------------------------------------------------------------*/
+  --spacing-container-desktop: var(--container-padding-desktop);
+  --spacing-container-mobile: var(--container-padding-mobile);
+  --spacing-container-tablet: var(--container-padding-tablet);
+  --spacing-stack-gap: var(--stack-gap);
+  --spacing-inline-gap: var(--inline-gap);
+  --spacing-section-margin: var(--section-margin);
+  --spacing-card-padding: var(--card-padding);
+  --spacing-rhythm: var(--vertical-rhythm);
+
+  /* Shadows ------------------------------------------------------------- */
+  --shadow-surface: var(--elevation-1);
+  --shadow-raised: var(--elevation-2);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* --------------------------------------------------------------------------
+   Design tokens — raw values (LIGHT theme — default)
+   -------------------------------------------------------------------------- */
+:root {
+  /* Color palette --------------------------------------------------------- */
+  --surface: #faf8ff;
+  --surface-dim: #d2d9f4;
+  --surface-bright: #faf8ff;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f2f3ff;
+  --surface-container: #eaedff;
+  --surface-container-high: #e2e7ff;
+  --surface-container-highest: #dae2fd;
+  --surface-variant: #dae2fd;
+
+  --on-surface: #131b2e;
+  --on-surface-variant: #464554;
+
+  --inverse-surface: #283044;
+  --inverse-on-surface: #eef0ff;
+  --inverse-primary: #c0c1ff;
+
+  --outline: #767586;
+  --outline-variant: #c7c4d7;
+
+  --surface-tint: #494bd6;
+
+  /* Primary = "High-Trust Indigo" */
+  --primary: #4648d4;
+  --on-primary: #ffffff;
+  --primary-container: #6063ee;
+  --on-primary-container: #fffbff;
+
+  /* Secondary = "Clinical Cyan" accent */
+  --secondary: #00687a;
+  --on-secondary: #ffffff;
+  --secondary-container: #57dffe;
+  --on-secondary-container: #006172;
+
+  --tertiary: #006c49;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #00885d;
+  --on-tertiary-container: #000703;
+
+  --error: #ba1a1a;
+  --on-error: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+
+  --primary-fixed: #e1e0ff;
+  --primary-fixed-dim: #c0c1ff;
+  --on-primary-fixed: #07006c;
+  --on-primary-fixed-variant: #2f2ebe;
+
+  --secondary-fixed: #acedff;
+  --secondary-fixed-dim: #4cd7f6;
+  --on-secondary-fixed: #001f26;
+  --on-secondary-fixed-variant: #004e5c;
+
+  --tertiary-fixed: #6ffbbe;
+  --tertiary-fixed-dim: #4edea3;
+  --on-tertiary-fixed: #002113;
+  --on-tertiary-fixed-variant: #005236;
+
+  --background: #faf8ff;
+  --on-background: #131b2e;
+
+  /* Typography -------------------------------------------------------------*/
+  --font-family-base: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --text-display-size: 48px;
+  --text-display-weight: 700;
+  --text-display-line-height: 1.1;
+  --text-display-letter-spacing: -0.02em;
+
+  --text-display-mobile-size: 36px;
+  --text-display-mobile-weight: 700;
+  --text-display-mobile-line-height: 1.2;
+  --text-display-mobile-letter-spacing: normal;
+
+  --text-section-title-size: 32px;
+  --text-section-title-weight: 700;
+  --text-section-title-line-height: 1.25;
+  --text-section-title-letter-spacing: normal;
+
+  --text-card-title-size: 20px;
+  --text-card-title-weight: 600;
+  --text-card-title-line-height: 1.4;
+  --text-card-title-letter-spacing: normal;
+
+  --text-body-lg-size: 16px;
+  --text-body-lg-weight: 400;
+  --text-body-lg-line-height: 1.6;
+  --text-body-lg-letter-spacing: normal;
+
+  --text-body-sm-size: 14px;
+  --text-body-sm-weight: 400;
+  --text-body-sm-line-height: 1.5;
+  --text-body-sm-letter-spacing: normal;
+
+  --text-label-caps-size: 12px;
+  --text-label-caps-weight: 600;
+  --text-label-caps-line-height: 1;
+  --text-label-caps-letter-spacing: 0.05em;
+
+  --text-button-size: 15px;
+  --text-button-weight: 600;
+  --text-button-line-height: 1;
+  --text-button-letter-spacing: normal;
+
+  /* Radii — generic scale ---------------------------------------------------*/
+  --rounded-sm: 0.25rem;
+  --rounded-default: 0.5rem;
+  --rounded-md: 0.75rem;
+  --rounded-lg: 1rem;
+  --rounded-xl: 1.5rem;
+  --rounded-full: 9999px;
+
+  /* Radii — semantic shape language ("Shapes" section) ----------------------
+     Cards: fixed 20px "app-like" radius.
+     Controls (buttons/inputs): 12px — modern but structural.
+     Indicators (status chips): full pill. */
+  --shape-card: 20px;
+  --shape-control: 12px;
+  --shape-pill: 9999px;
+
+  /* Spacing ----------------------------------------------------------------*/
+  --spacing-base: 4px;
+  --vertical-rhythm: 8px; /* base * 2, per "Vertical Rhythm" */
+  --container-padding-desktop: 40px; /* 1440px+ */
+  --container-padding-tablet: 24px;  /* 768–1024px */
+  --container-padding-mobile: 20px;  /* <768px */
+  --card-padding: 24px;
+  --stack-gap: 24px;
+  --inline-gap: 16px;
+  --section-margin: 80px;
+
+  /* Grid */
+  --grid-columns: 12;
+  --grid-gutter: 24px;
+  --grid-margin: auto;
+
+  /* Elevation — "Tonal Layering" + soft ambient shadows (light) -----------
+     Level 0 = background color, no shadow
+     Level 1 = surface / cards
+     Level 2 = raised / hover states on interactive widgets
+     Level 3 = overlay / glassmorphism (modals, dropdowns, flyouts) */
+  --elevation-0: var(--background);
+  --elevation-1-surface: var(--surface-container-lowest);
+  --elevation-1: 0px 4px 20px rgba(15, 23, 42, 0.05);
+  --elevation-2-surface: var(--surface-container-lowest);
+  --elevation-2: 0px 10px 30px rgba(15, 23, 42, 0.08);
+
+  --glass-blur: 12px;
+  --glass-surface: rgba(255, 255, 255, 0.8);
+  --glass-border: #e2e8f0;
+
+  /* Chart / data-viz grid line color, per "Data Visualization" spec */
+  --chart-grid-line: #e2e8f0;
+
+  /* Status chip background opacity, per "Feedback & Chips" spec */
+  --chip-bg-opacity: 10%;
+}
+
+/* --------------------------------------------------------------------------
+   Design tokens — raw values (DARK theme)
+   Sourced directly from the brief's native dark-mode spec — a dedicated
+   palette, not derived from the light theme. Toggle via [data-theme="dark"]
+   on <html>, or it follows system preference automatically when no
+   explicit theme is set.
+
+   Note: the brief's dark frontmatter repeats the light theme's error/
+   on-error/error-container/on-error-container values verbatim (apparent
+   copy artifact, since every other role inverts correctly). Using them
+   as-is would fail contrast on a dark surface, so the error role here
+   follows the same light→dark inversion pattern as every other role in
+   the brief (light, legible tone on dark; dark, saturated tone for
+   containers) rather than reusing the light-mode value.
+   -------------------------------------------------------------------------- */
+[data-theme='dark'] {
+  --surface: #0b1326;
+  --surface-dim: #0b1326;
+  --surface-bright: #31394d;
+  --surface-container-lowest: #060e20;
+  --surface-container-low: #131b2e;
+  --surface-container: #171f33;
+  --surface-container-high: #222a3d;
+  --surface-container-highest: #2d3449;
+  --surface-variant: #2d3449;
+
+  --on-surface: #dae2fd;
+  --on-surface-variant: #c7c4d7;
+
+  --inverse-surface: #dae2fd;
+  --inverse-on-surface: #283044;
+  --inverse-primary: #494bd6;
+
+  --outline: #908fa0;
+  --outline-variant: #464554;
+
+  --surface-tint: #c0c1ff;
+
+  --primary: #c0c1ff;
+  --on-primary: #1000a9;
+  --primary-container: #8083ff;
+  --on-primary-container: #0d0096;
+
+  --secondary: #4cd7f6;
+  --on-secondary: #003640;
+  --secondary-container: #03b5d3;
+  --on-secondary-container: #00424e;
+
+  --tertiary: #4edea3;
+  --on-tertiary: #003824;
+  --tertiary-container: #00885d;
+  --on-tertiary-container: #000703;
+
+  /* See note above re: error tokens diverging from the brief's frontmatter */
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+
+  --background: #0b1326;
+  --on-background: #dae2fd;
+
+  /* Elevation — "Tonal Layering" + dark-tinted ambient shadows -------------
+     Base (#0F172A), Surface (#1E293B), Raised (#334155), per spec. These
+     exact hexes sit between the frontmatter's surface tokens, so they're
+     applied as their own elevation-specific surface tones rather than
+     reusing surface-container-*. */
+  --elevation-0: #0f172a;
+  --elevation-1-surface: #1e293b;
+  --elevation-1: 0px 4px 20px rgba(0, 0, 0, 0.3);
+  --elevation-2-surface: #334155;
+  --elevation-2: 0px 10px 30px rgba(0, 0, 0, 0.4);
+
+  --glass-blur: 12px;
+  --glass-surface: rgba(30, 41, 59, 0.8);
+  --glass-border: #334155;
+
+  /* Grid lines: outline-variant, per dark "Data Visualization" spec */
+  --chart-grid-line: var(--outline-variant);
+
+  /* Status chip background opacity raised for dark-mode contrast, per spec */
+  --chip-bg-opacity: 20%;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme='light']) {
+    --surface: #0b1326;
+    --surface-dim: #0b1326;
+    --surface-bright: #31394d;
+    --surface-container-lowest: #060e20;
+    --surface-container-low: #131b2e;
+    --surface-container: #171f33;
+    --surface-container-high: #222a3d;
+    --surface-container-highest: #2d3449;
+    --surface-variant: #2d3449;
+
+    --on-surface: #dae2fd;
+    --on-surface-variant: #c7c4d7;
+
+    --inverse-surface: #dae2fd;
+    --inverse-on-surface: #283044;
+    --inverse-primary: #494bd6;
+
+    --outline: #908fa0;
+    --outline-variant: #464554;
+
+    --surface-tint: #c0c1ff;
+
+    --primary: #c0c1ff;
+    --on-primary: #1000a9;
+    --primary-container: #8083ff;
+    --on-primary-container: #0d0096;
+
+    --secondary: #4cd7f6;
+    --on-secondary: #003640;
+    --secondary-container: #03b5d3;
+    --on-secondary-container: #00424e;
+
+    --tertiary: #4edea3;
+    --on-tertiary: #003824;
+    --tertiary-container: #00885d;
+    --on-tertiary-container: #000703;
+
+    --error: #ffb4ab;
+    --on-error: #690005;
+    --error-container: #93000a;
+    --on-error-container: #ffdad6;
+
+    --background: #0b1326;
+    --on-background: #dae2fd;
+
+    --elevation-0: #0f172a;
+    --elevation-1-surface: #1e293b;
+    --elevation-1: 0px 4px 20px rgba(0, 0, 0, 0.3);
+    --elevation-2-surface: #334155;
+    --elevation-2: 0px 10px 30px rgba(0, 0, 0, 0.4);
+
+    --glass-blur: 12px;
+    --glass-surface: rgba(30, 41, 59, 0.8);
+    --glass-border: #334155;
+
+    --chart-grid-line: var(--outline-variant);
+    --chip-bg-opacity: 20%;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+* {
+  border-color: var(--outline-variant);
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) {
+    color-scheme: dark;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background);
+  color: var(--on-background);
+  font-family: var(--font-family-base);
+  font-size: var(--text-body-lg-size);
+  font-weight: var(--text-body-lg-weight);
+  line-height: var(--text-body-lg-line-height);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Visible keyboard focus, app-wide */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: var(--rounded-sm);
+}
+
+/* --------------------------------------------------------------------------
+   Typography utility classes
+   -------------------------------------------------------------------------- */
+.text-display {
+  font-family: var(--font-family-base);
+  font-size: var(--text-display-size);
+  font-weight: var(--text-display-weight);
+  line-height: var(--text-display-line-height);
+  letter-spacing: var(--text-display-letter-spacing);
+}
+
+.text-display-mobile {
+  font-family: var(--font-family-base);
+  font-size: var(--text-display-mobile-size);
+  font-weight: var(--text-display-mobile-weight);
+  line-height: var(--text-display-mobile-line-height);
+}
+
+.text-section-title {
+  font-family: var(--font-family-base);
+  font-size: var(--text-section-title-size);
+  font-weight: var(--text-section-title-weight);
+  line-height: var(--text-section-title-line-height);
+}
+
+.text-card-title {
+  font-family: var(--font-family-base);
+  font-size: var(--text-card-title-size);
+  font-weight: var(--text-card-title-weight);
+  line-height: var(--text-card-title-line-height);
+}
+
+.text-body-lg {
+  font-family: var(--font-family-base);
+  font-size: var(--text-body-lg-size);
+  font-weight: var(--text-body-lg-weight);
+  line-height: var(--text-body-lg-line-height);
+}
+
+.text-body-sm {
+  font-family: var(--font-family-base);
+  font-size: var(--text-body-sm-size);
+  font-weight: var(--text-body-sm-weight);
+  line-height: var(--text-body-sm-line-height);
+}
+
+.text-label-caps {
+  font-family: var(--font-family-base);
+  font-size: var(--text-label-caps-size);
+  font-weight: var(--text-label-caps-weight);
+  line-height: var(--text-label-caps-line-height);
+  letter-spacing: var(--text-label-caps-letter-spacing);
+  text-transform: uppercase;
+}
+
+.text-button {
+  font-family: var(--font-family-base);
+  font-size: var(--text-button-size);
+  font-weight: var(--text-button-weight);
+  line-height: var(--text-button-line-height);
+}
+
+@media (max-width: 767px) {
+  .text-display {
+    font-size: var(--text-display-mobile-size);
+    line-height: var(--text-display-mobile-line-height);
+    letter-spacing: normal;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Layout utilities
+   -------------------------------------------------------------------------- */
+.container-page {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--container-padding-mobile);
+}
+
+@media (min-width: 768px) {
+  .container-page {
+    padding-inline: var(--container-padding-tablet);
+  }
+}
+
+@media (min-width: 1440px) {
+  .container-page {
+    padding-inline: var(--container-padding-desktop);
+  }
+}
+
+.section {
+  margin-block: var(--section-margin);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: var(--inline-gap);
+}
+
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+}
+
+/* Dashboard module spans, per "Grid" spec: 4 cols for stats/small widgets,
+   6–8 cols for main charts and patient lists. */
+.col-span-stat {
+  grid-column: span 4;
+}
+
+.col-span-main {
+  grid-column: span 8;
+}
+
+@media (max-width: 1023px) {
+  .grid-12 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .col-span-stat,
+  .col-span-main {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 767px) {
+  .grid-12 {
+    grid-template-columns: 1fr;
+  }
+  .col-span-stat,
+  .col-span-main {
+    grid-column: span 1;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Elevation & Glassmorphism
+   -------------------------------------------------------------------------- */
+.elevation-1 {
+  background-color: var(--elevation-1-surface);
+  box-shadow: var(--elevation-1);
+}
+
+.elevation-2 {
+  background-color: var(--elevation-2-surface);
+  box-shadow: var(--elevation-2);
+}
+
+.glass {
+  background-color: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+/* --------------------------------------------------------------------------
+   Components
+   -------------------------------------------------------------------------- */
+
+/* Buttons ------------------------------------------------------------------*/
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--shape-control);
+  padding: 10px 20px;
+  font-family: var(--font-family-base);
+  font-size: var(--text-button-size);
+  font-weight: var(--text-button-weight);
+  line-height: var(--text-button-line-height);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  /* subtle tactile feel */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-container);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-fixed);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--on-surface-variant);
+  border: 1px solid transparent;
+}
+
+.btn-ghost:hover {
+  background-color: var(--surface-container);
+  color: var(--on-surface);
+}
+
+/* Input fields ---------------------------------------------------------- */
+.input {
+  display: block;
+  width: 100%;
+  border-radius: var(--shape-control);
+  border: 1px solid var(--outline-variant);
+  background-color: var(--elevation-1-surface);
+  color: var(--on-surface);
+  padding: 10px 14px;
+  font-family: var(--font-family-base);
+  font-size: var(--text-body-lg-size);
+  line-height: var(--text-body-lg-line-height);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: var(--on-surface-variant);
+}
+
+.input:focus-visible,
+.input:focus {
+  outline: none;
+  border-color: var(--primary);
+  border-width: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.input-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--on-surface-variant);
+  stroke-width: 1.75;
+}
+
+/* Cards ------------------------------------------------------------------ */
+.card {
+  background-color: var(--elevation-1-surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--shape-card);
+  padding: var(--card-padding);
+  box-shadow: var(--elevation-1);
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* Hover: lift 2px; light theme deepens the shadow, dark theme also
+   lightens the surface tone (per dark spec: "increase surface lightness") */
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--elevation-2);
+  background-color: var(--elevation-2-surface);
+}
+
+/* Overlays: modals, dropdowns, flyouts — glassmorphism level 3 ----------- */
+.overlay {
+  background-color: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--shape-card);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--elevation-2);
+}
+
+/* Chart tooltips reuse the same glass + elevation-2 treatment */
+.chart-tooltip {
+  background-color: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--rounded-md);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--elevation-2);
+  padding: 8px 12px;
+  font-size: var(--text-body-sm-size);
+}
+
+/* Status chips / badges --------------------------------------------------
+   Full pill shape, tinted background of the semantic color (10% light /
+   20% dark, per each theme's spec) with high-contrast text in that color. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--shape-pill);
+  padding: 4px 12px;
+  font-family: var(--font-family-base);
+  font-size: var(--text-label-caps-size);
+  font-weight: var(--text-label-caps-weight);
+  letter-spacing: var(--text-label-caps-letter-spacing);
+  line-height: var(--text-label-caps-line-height);
+  text-transform: uppercase;
+}
+
+.chip-success {
+  background-color: color-mix(in srgb, var(--tertiary) var(--chip-bg-opacity), transparent);
+  color: var(--tertiary);
+}
+
+.chip-warning {
+  background-color: color-mix(in srgb, var(--secondary) var(--chip-bg-opacity), transparent);
+  color: var(--secondary);
+}
+
+.chip-danger {
+  background-color: color-mix(in srgb, var(--error) var(--chip-bg-opacity), transparent);
+  color: var(--error);
+}
+
+/* Table headers / metadata labels ----------------------------------------*/
+th,
+.table-label {
+  font-family: var(--font-family-base);
+  font-size: var(--text-label-caps-size);
+  font-weight: var(--text-label-caps-weight);
+  letter-spacing: var(--text-label-caps-letter-spacing);
+  line-height: var(--text-label-caps-line-height);
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
 }
