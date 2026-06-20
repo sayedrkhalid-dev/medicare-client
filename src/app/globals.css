@@ -175,7 +175,8 @@
   --on-background: #131b2e;
 
   /* Typography -------------------------------------------------------------*/
-  --font-family-base: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-family-base:
+    "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --text-display-size: 48px;
   --text-display-weight: 700;
@@ -218,11 +219,11 @@
   --text-button-letter-spacing: normal;
 
   /* Radii — generic scale ---------------------------------------------------*/
-  --rounded-sm: 0.25rem;
-  --rounded-default: 0.5rem;
-  --rounded-md: 0.75rem;
-  --rounded-lg: 1rem;
-  --rounded-xl: 1.5rem;
+  --rounded-sm: 0.125rem;
+  --rounded-default: 0.25rem;
+  --rounded-md: 0.375rem;
+  --rounded-lg: 0.5rem;
+  --rounded-xl: 0.75rem;
   --rounded-full: 9999px;
 
   /* Radii — semantic shape language ("Shapes" section) ----------------------
@@ -237,8 +238,8 @@
   --spacing-base: 4px;
   --vertical-rhythm: 8px; /* base * 2, per "Vertical Rhythm" */
   --container-padding-desktop: 40px; /* 1440px+ */
-  --container-padding-tablet: 24px;  /* 768–1024px */
-  --container-padding-mobile: 20px;  /* <768px */
+  --container-padding-tablet: 24px; /* 768–1024px */
+  --container-padding-mobile: 20px; /* <768px */
   --card-padding: 24px;
   --stack-gap: 24px;
   --inline-gap: 16px;
@@ -286,7 +287,7 @@
    the brief (light, legible tone on dark; dark, saturated tone for
    containers) rather than reusing the light-mode value.
    -------------------------------------------------------------------------- */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --surface: #0b1326;
   --surface-dim: #0b1326;
   --surface-bright: #31394d;
@@ -356,7 +357,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
+  :root:not([data-theme="light"]) {
     --surface: #0b1326;
     --surface-dim: #0b1326;
     --surface-bright: #31394d;
@@ -429,12 +430,12 @@ html {
   color-scheme: light;
 }
 
-html[data-theme='dark'] {
+html[data-theme="dark"] {
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
-  html:not([data-theme='light']) {
+  html:not([data-theme="light"]) {
     color-scheme: dark;
   }
 }
@@ -448,7 +449,9 @@ body {
   line-height: var(--text-body-lg-line-height);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -650,8 +653,11 @@ body {
   font-weight: var(--text-button-weight);
   line-height: var(--text-button-line-height);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease,
-    border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .btn:focus-visible {
@@ -704,7 +710,9 @@ body {
   font-family: var(--font-family-base);
   font-size: var(--text-body-lg-size);
   line-height: var(--text-body-lg-line-height);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .input::placeholder {
@@ -733,7 +741,9 @@ body {
   border-radius: var(--shape-card);
   padding: var(--card-padding);
   box-shadow: var(--elevation-1);
-  transition: transform 0.15s ease, box-shadow 0.15s ease,
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
     background-color 0.15s ease;
 }
 
@@ -785,17 +795,29 @@ body {
 }
 
 .chip-success {
-  background-color: color-mix(in srgb, var(--tertiary) var(--chip-bg-opacity), transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--tertiary) var(--chip-bg-opacity),
+    transparent
+  );
   color: var(--tertiary);
 }
 
 .chip-warning {
-  background-color: color-mix(in srgb, var(--secondary) var(--chip-bg-opacity), transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--secondary) var(--chip-bg-opacity),
+    transparent
+  );
   color: var(--secondary);
 }
 
 .chip-danger {
-  background-color: color-mix(in srgb, var(--error) var(--chip-bg-opacity), transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--error) var(--chip-bg-opacity),
+    transparent
+  );
   color: var(--error);
 }
 
