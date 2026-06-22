@@ -88,13 +88,10 @@ const RegisterForm = () => {
         email: registerData.email,
         password: registerData.password,
         name: `${registerData.firstName.trim()} ${registerData.lastName.trim()}`,
-        image: registerData.imageUrl.trim() || undefined, // use undefined if blank so it doesn't send an empty string
+        image: registerData.imageUrl.trim() || undefined,
 
-        // authClient automatically structuralizes 'data' properties for backend validation rules!
-        data: {
-          role: registerData.role,
-          gender: registerData.gender,
-        },
+        role: registerData.role,
+        gender: registerData.gender,
       });
 
       if (error) {

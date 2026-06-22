@@ -5,7 +5,7 @@ import { useState } from "react";
 import { FiEye, FiEyeOff, FiLock, FiMail } from "react-icons/fi";
 import { authClient } from "@/lib/auth-client";
 
-const LoginForm = ({ params }) => {
+const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -67,7 +67,7 @@ const LoginForm = ({ params }) => {
       provider: "google",
       callbackURL: "/",
     });
-    console.log(params, data);
+    console.log(data);
   };
 
   const handleLoginChange = (e) => {
