@@ -4,3 +4,126 @@
   --font-sans: var(--font-roboto-sans), sans-serif;
   --font-mono: var(--font-roboto-mono), monospace;
 }
+
+@layer utilities {
+  /* ==========================================================================
+     1. GLOBAL VIEWPORT ANATOMY (html, body, layout canvas)
+     ========================================================================== */
+
+  /* Size & Shape Mechanics */
+  ::-webkit-scrollbar {
+    width: 10px; /* Vertical thickness matching your design spec */
+    height: 10px; /* Horizontal thickness matching your design spec */
+  }
+
+  /* Track Anatomy (The background rail) */
+  ::-webkit-scrollbar-track {
+    background: #ffffff; /* Light Canvas Base background */
+  }
+
+  .dark ::-webkit-scrollbar-track {
+    background: #020617; /* Dark Canvas Base (slate-950) background */
+  }
+
+  /* Thumb Anatomy (The interactive handle) */
+  ::-webkit-scrollbar-thumb {
+    background: #e6f0fa; /* Secondary Structural Sky color */
+    border-radius: 9999px; /* Capsule design token */
+    /* Padding/Inward Offset simulation via transparent-emulating solid border */
+    border: 2.5px solid #ffffff;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #1e3a8a; /* Clean Medical Navy color */
+    border-radius: 9999px;
+    border: 2.5px solid #020617; /* Matches dark track color to simulate inner padding */
+  }
+
+  /* Hover & Active Feedback States */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1; /* Mid-tone slate feedback accent */
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #334155; /* Interactive slate fill */
+  }
+
+  /* Active Press State */
+  ::-webkit-scrollbar-thumb:active {
+    background: #94a3b8;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:active {
+    background: #475569;
+  }
+
+  /* ==========================================================================
+     2. CUSTOM PANEL ANATOMY (Asides, Cards, Nested Data Table Grids)
+     ========================================================================== */
+
+  /* High-density layout sizing */
+  .custom-panel-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  /* Panel Track Anatomy */
+  .custom-panel-scrollbar::-webkit-scrollbar-track {
+    background: #f8fafc; /* Soft interior slate track fallback */
+    border-radius: 12px;
+  }
+
+  .dark .custom-panel-scrollbar::-webkit-scrollbar-track {
+    background: #0f172a; /* Secondary Structural slate-900 track */
+    border-radius: 12px;
+  }
+
+  /* Panel Thumb Anatomy */
+  .custom-panel-scrollbar::-webkit-scrollbar-thumb {
+    background: #e6f0fa;
+    border-radius: 12px;
+    border: 1px solid #f8fafc; /* Fine inner padding contrast boundary */
+  }
+
+  .dark .custom-panel-scrollbar::-webkit-scrollbar-thumb {
+    background: #1e3a8a;
+    border-radius: 12px;
+    border: 1px solid #0f172a; /* Fine inner padding contrast boundary */
+  }
+
+  /* Hover States with Action Accent highlights */
+  .custom-panel-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  .dark .custom-panel-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #3cd1c2; /* Interactive glow effect using Action Accent Teal */
+  }
+
+  /* ==========================================================================
+     3. RE-STANDARDIZED CROSS-BROWSER FALLBACKS (Firefox / W3C Engine Specs)
+     ========================================================================== */
+
+  /* Applies matching aesthetic definitions to Firefox's alternative layout rendering engine */
+  @supports (scrollbar-width: bold) {
+    html,
+    body {
+      scrollbar-width: bold;
+      scrollbar-color: #e6f0fa #ffffff;
+    }
+
+    .dark html,
+    .dark body {
+      scrollbar-color: #1e3a8a #020617;
+    }
+
+    .custom-panel-scrollbar {
+      scrollbar-width: bold;
+      scrollbar-color: #e6f0fa #f8fafc;
+    }
+
+    .dark .custom-panel-scrollbar {
+      scrollbar-color: #1e3a8a #0f172a;
+    }
+  }
+}

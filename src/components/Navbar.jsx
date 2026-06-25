@@ -166,7 +166,7 @@ export default function Navbar() {
           {/* Private Dashboard Link for Desktop view when Session is Authorized */}
           {!loading && user && (
             <Link
-              href="/dashboard"
+              href={`/dashboard/${user.role}/overview`}
               className={`text-[15px] font-medium tracking-tight transition-colors duration-200 pb-1 relative cursor-pointer ${
                 isActive("/dashboard")
                   ? "text-[#1E3A8A] font-bold border-b-2 border-[#1E3A8A] dark:text-[#E6F0FA] dark:border-[#008080]"
@@ -251,7 +251,7 @@ export default function Navbar() {
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                           {user.email}
                         </p>
-                        <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-bold bg-[#E6F0FA] text-[#1E3A8A] dark:bg-slate-800 dark:text-slate-300 rounded-full">
+                        <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-bold bg-[#E6F0FA] text-[#1E3A8A] dark:bg-slate-800 dark:text-slate-300 rounded-full capitalize">
                           {user.role} Account
                         </span>
                       </div>
