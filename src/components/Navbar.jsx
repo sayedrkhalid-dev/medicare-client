@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import logo from "../../public/logo.png";
+import { useTheme } from "@/context/ThemeContext"; // Imported global theme context hook
 
 import {
   FiHome,
@@ -25,9 +26,9 @@ import { authClient } from "@/lib/auth-client";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { isDark, toggleTheme } = useTheme(); // Consuming global theme utilities seamlessly
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const dropdownRef = useRef(null);
 
   const [user, setUser] = useState(null);
@@ -61,20 +62,6 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (
-      savedTheme === "dark" ||
-      (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ) {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    } else {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
-  useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
@@ -88,18 +75,6 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDropdownOpen]);
-
-  const toggleTheme = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDarkMode(true);
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -186,7 +161,7 @@ export default function Navbar() {
             className="p-2.5 rounded-[12px] text-slate-600 hover:text-[#1E3A8A] hover:bg-[#E6F0FA] dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-900 transition-all active:scale-95 cursor-pointer"
             aria-label="Toggle Layout Theme"
           >
-            {isDarkMode ? (
+            {isDark ? (
               <FiSun className="w-5 h-5 text-amber-400" />
             ) : (
               <FiMoon className="w-5 h-5" />

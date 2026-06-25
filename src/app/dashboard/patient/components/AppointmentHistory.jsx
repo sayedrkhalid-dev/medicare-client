@@ -78,7 +78,7 @@ export default function AppointmentHistory({
       </div>
 
       {/* Horizontal Scroller Shell - Clean Track Suppression */}
-      <div className="overflow-x-auto -mx-6 px-6 pb-1 overflow-x-scroll">
+      <div className="overflow-x-auto -mx-6 px-6 pb-1">
         <table className="w-full text-left border-collapse min-w-[750px]">
           <thead>
             <tr className="border-b border-[#E6F0FA] dark:border-slate-800/60">
