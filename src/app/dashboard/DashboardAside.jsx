@@ -12,44 +12,134 @@ import {
   RxGear,
   RxChevronLeft,
   RxChevronRight,
+  RxPerson,
+  RxFileText,
+  RxEnvelopeOpen,
+  RxCardStack,
 } from "react-icons/rx";
 import { LuShieldAlert } from "react-icons/lu";
+
+// Central navigation mapping configuration matching your structures perfectly
+const navigationConfig = {
+  admin: {
+    portalLabel: "Admin Portal",
+    primary: [
+      { label: "Overview", href: "/dashboard/admin", icon: RxDashboard },
+      {
+        label: "User Management",
+        href: "/dashboard/admin/users",
+        icon: RxPerson,
+      },
+      {
+        label: "Doctor Applications",
+        href: "/dashboard/admin/doctor-applications",
+        icon: RxEnvelopeOpen,
+      },
+      {
+        label: "Doctor Management",
+        href: "/dashboard/admin/doctors",
+        icon: RxReader,
+      },
+      {
+        label: "Appointments",
+        href: "/dashboard/admin/appointments",
+        icon: RxCalendar,
+      },
+      {
+        label: "Payments",
+        href: "/dashboard/admin/payments",
+        icon: RxCardStack,
+      },
+      {
+        label: "Prescriptions",
+        href: "/dashboard/admin/prescriptions",
+        icon: RxFileText,
+      },
+      { label: "Reviews", href: "/dashboard/admin/reviews", icon: RxStar },
+    ],
+    administrative: [
+      { label: "Settings", href: "/dashboard/admin/settings", icon: RxGear },
+    ],
+  },
+  doctor: {
+    portalLabel: "Doctor Portal",
+    primary: [
+      { label: "Overview", href: "/dashboard/doctor", icon: RxDashboard },
+      { label: "Profile", href: "/dashboard/doctor/profile", icon: RxPerson },
+      {
+        label: "Schedule Management",
+        href: "/dashboard/doctor/schedules",
+        icon: RxCardStack,
+      },
+      {
+        label: "My Appointments",
+        href: "/dashboard/doctor/appointments",
+        icon: RxCalendar,
+      },
+      {
+        label: "Prescriptions",
+        href: "/dashboard/doctor/prescriptions",
+        icon: RxFileText,
+      },
+      { label: "My Reviews", href: "/dashboard/doctor/reviews", icon: RxStar },
+    ],
+    administrative: [
+      { label: "Settings", href: "/dashboard/doctor/settings", icon: RxGear },
+    ],
+  },
+  patient: {
+    portalLabel: "Patient Portal",
+    primary: [
+      {
+        label: "Overview",
+        href: "/dashboard/patient/overview",
+        icon: RxDashboard,
+      },
+      {
+        label: "My Prescriptions",
+        href: "/dashboard/patient/my-prescriptions",
+        icon: RxFileText,
+      },
+      {
+        label: "My Appointments",
+        href: "/dashboard/patient/my-appointments",
+        icon: RxCalendar,
+      },
+      {
+        label: "Payment History",
+        href: "/dashboard/patient/payment-history",
+        icon: RxReader,
+      },
+      {
+        label: "My Reviews",
+        href: "/dashboard/patient/my-reviews",
+        icon: RxStar,
+      },
+    ],
+    administrative: [
+      {
+        label: "Settings",
+        href: "/dashboard/patient/my-settings",
+        icon: RxGear,
+      },
+    ],
+  },
+};
 
 export default function DashboardAside() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const primaryLinks = [
-    {
-      label: "Overview",
-      href: "/dashboard/patient/overview",
-      icon: RxDashboard,
-    },
-    {
-      label: "My Prescriptions",
-      href: "/dashboard/patient/my-prescriptions",
-      icon: RxCalendar,
-    },
-    {
-      label: "My Appointments",
-      href: "/dashboard/patient/my-appointments",
-      icon: RxCalendar,
-    },
-    {
-      label: "Payment History",
-      href: "/dashboard/patient/payment-history",
-      icon: RxReader,
-    },
-    {
-      label: "My Reviews",
-      href: "/dashboard/patient/my-reviews",
-      icon: RxStar,
-    },
-  ];
+  // Determine current active config branch by checking path root prefix
+  const currentRole = pathname?.startsWith("/dashboard/admin")
+    ? "admin"
+    : pathname?.startsWith("/dashboard/doctor")
+      ? "doctor"
+      : "patient";
 
-  const administrativeLinks = [
-    { label: "Settings", href: "/dashboard/patient/my-settings", icon: RxGear },
-  ];
+  const currentNav = navigationConfig[currentRole];
+  const primaryLinks = currentNav.primary;
+  const administrativeLinks = currentNav.administrative;
 
   const getBaseStyles = (isActive, isDestructive, isEmergency) => `
     flex items-center rounded-[12px] transition-all duration-300 active:scale-[0.98] group relative overflow-hidden
@@ -66,7 +156,10 @@ export default function DashboardAside() {
   `;
 
   const renderLink = ({ label, href, icon: Icon }, isDestructive = false) => {
-    const isActive = pathname === href;
+    // Matches exact link path, or subroutes under that specific sub-panel module
+    const isActive =
+      pathname === href ||
+      (href !== `/dashboard/${currentRole}` && pathname?.startsWith(href));
 
     return (
       <Link
@@ -84,7 +177,6 @@ export default function DashboardAside() {
                 : "text-slate-400 group-hover:text-inherit"
           }`}
         />
-        {/* Animated text block container */}
         <span
           className={`text-[14px] font-medium tracking-tight whitespace-nowrap transition-all duration-300 ease-in-out block ${
             isCollapsed
@@ -117,14 +209,13 @@ export default function DashboardAside() {
                 : "opacity-100 max-w-xs max-h-4 mt-0.5"
             }`}
           >
-            Patient Portal
+            {currentNav.portalLabel}
           </span>
         </Link>
       </div>
 
       {/* Scrollable Navigation Body */}
       <div className="h-[calc(100vh-160px)] overflow-y-auto py-6 flex flex-col gap-6 custom-panel-scrollbar overflow-x-hidden px-2">
-        {/* Core Navigation Group with Integrated Action Toggle */}
         <div className="flex flex-col gap-1">
           <div
             className={`flex items-center mb-2 transition-all duration-300 ${
@@ -141,16 +232,15 @@ export default function DashboardAside() {
               Main Menu
             </span>
 
-            {/* Toggle Icon Control */}
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
               className="p-1.5 rounded-md text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-[#E6F0FA] dark:hover:bg-slate-900 transition-all active:scale-95 layout-toggle-btn shrink-0"
               title={isCollapsed ? "Expand Menu" : "Collapse Menu"}
             >
               {isCollapsed ? (
-                <RxChevronRight className="w-4 h-4 shrink-0 animate-fadeIn" />
+                <RxChevronRight className="w-4 h-4 shrink-0" />
               ) : (
-                <RxChevronLeft className="w-4 h-4 shrink-0 animate-fadeIn" />
+                <RxChevronLeft className="w-4 h-4 shrink-0" />
               )}
             </button>
           </div>

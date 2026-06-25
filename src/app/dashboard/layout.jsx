@@ -1,12 +1,22 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import DashboardAside from "./DashboardAside";
 import DashboardNavbar from "./DashboardNavbar";
 import DashboardFooter from "./DashboardFooter";
 import Navbar from "@/components/Navbar";
 
 export default function DashboardLayout({ children }) {
+  const pathname = usePathname();
+
+  // Dynamic Workspace Labeling based on Route segment
+  const workspaceTitle = pathname?.startsWith("/dashboard/admin")
+    ? "Admin Workspace"
+    : pathname?.startsWith("/dashboard/doctor")
+      ? "Doctor Workspace"
+      : "Patient Workspace";
+
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-[#020617]">
       {/* Primary Application Global Marketing Head Navigation */}
@@ -27,7 +37,7 @@ export default function DashboardLayout({ children }) {
                   Secure Environment
                 </span>
                 <h1 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight">
-                  Patient Workspace
+                  {workspaceTitle}
                 </h1>
               </div>
             </div>
