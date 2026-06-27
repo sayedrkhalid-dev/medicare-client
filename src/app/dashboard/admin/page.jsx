@@ -11,10 +11,6 @@ import {
   RxArrowTopRight,
   RxActivityLog,
 } from "react-icons/rx";
-import { getAllUsers } from "@/services/users/user.service";
-
-const user = await getAllUsers();
-console.log(user);
 
 export default function AdminDashboardHome() {
   // Static structured mock values mirroring the specific dashboard data fields
