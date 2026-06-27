@@ -1,50 +1,80 @@
-# Design System Specification: The Trustworthy Classic
+# DESIGN.md
 
-This document anchors the spatial, color, and typographic tokens for the web application platform. Adhere to these tokens strictly across all interface modules to preserve complete design uniformity.
+## 1. Color Palette Blueprint (Ocean Breeze)
 
----
+This palette adapts gracefully across themes. [cite_start]The core colors are derived directly from your updated configuration, utilizing clean, high-contrast states to ensure excellent accessibility and visual clarity[cite: 5, 7].
 
-## 1. Color Strategy (The 60/30/10 Rule)
+### Color Tokens Map
 
-The layout distribution utilizes three strict structural weight properties across both lighting environments:
-
-| Weight                         | Palette Assignment         | Light Mode Target            | Dark Mode Target             |
-| :----------------------------- | :------------------------- | :--------------------------- | :--------------------------- |
-| **60% (Dominant Background)**  | Pure Crisp Foundation      | `#FFFFFF`                    | `#020617` (`slate-950`)      |
-| **30% (Secondary Structural)** | Clean Medical Navy / Slate | `#1E3A8A` / `#E6F0FA`        | `#0F172A` (`slate-900`)      |
-| **10% (Action Accent)**        | High-Conversion Deep Teal  | `#008080` / Hover: `#006666` | `#3cd1c2` / Hover: `#2ab0a2` |
-
-### Utility Tailwind Mappings:
-
-- **Light Borders / Accents:** `#E6F0FA` (Soft Sky Blue)
-- **Body Typography:** `text-slate-600` (Light) | `text-slate-400` (Dark)
+| Token                 | Hex / RGB Code       | Primary Purpose                                                                     |
+| :-------------------- | :------------------- | :---------------------------------------------------------------------------------- |
+| **Deep Abyssal Blue** | `#03045E`            | [cite_start]Light mode text headings, Dark mode structural panels [cite: 1]         |
+| **Honolulu Blue**     | `#0077B6`            | [cite_start]Branding, Primary interactive buttons, Focus states [cite: 2]           |
+| **Oceanic Cyan**      | `#00B4D8`            | [cite_start]Secondary interactive states, Links, Informative badges [cite: 3]       |
+| **Breeze Tint**       | `rgb(144, 224, 239)` | [cite_start]Soft borders, Light mode accent fills, Dark mode text accents [cite: 4] |
+| **Ice White**         | `#CAF0F8`            | [cite_start]Light mode subtle backgrounds, Dark mode high-contrast text [cite: 6]   |
 
 ---
 
-## 2. Corner Radius & Structural Curvature
+## 2. Theme Implementation (Light vs. Dark Mode)
 
-To avoid conflicting visual cues, shapes are limited to the following uniform constraints:
+To keep your user experience simple and cohesive, colors shift predictably across themes to preserve optimal contrast ratios:
 
-- **Standard Interactive Controls:** `rounded-[12px]`
-  - Applied directly to: Buttons, Form Fields, Dropdown Menu Blocks, Navbar list items, and Alert triggers.
-- **Component Layout Frame Containers:** `rounded-[20px]`
-  - Applied directly to: Main hero cards, floating UI validation containers, and media wrapper layouts.
+### Light Mode Layout Matrix
+
+- **Primary Page Canvas:** `#FFFFFF` (Pure White)
+- [cite_start]**Secondary Surface/Cards:** `#CAF0F8` at `20%` opacity, or flat `#F4FBFD` for subtle separation[cite: 6].
+- [cite_start]**Component Borders:** `rgb(144, 224, 239)` with tight alpha blending (`/30`)[cite: 4].
+- [cite_start]**Primary Text Headers:** `#03045E` (Deep Abyssal Blue)[cite: 1].
+- **Body Text / Labels:** `#475569` (Slate 600) / `#64748B` (Slate 500)
+
+### Dark Mode Layout Matrix
+
+- [cite_start]**Primary Page Canvas:** `#03045E` blended down with dark slate (`#02042A`) to ensure text readability[cite: 1].
+- [cite_start]**Secondary Surface/Cards:** `#03045E` at a slightly lighter, raised opacity elevation layer[cite: 1].
+- [cite_start]**Component Borders:** `#0077B6` blended down (`/20`) to create soft, glowing divisions[cite: 2].
+- [cite_start]**Primary Text Headers:** `#CAF0F8` (Ice White)[cite: 6].
+- [cite_start]**Body Text / Labels:** `rgb(144, 224, 239)` at high opacity for clean readability[cite: 4].
 
 ---
 
-## 3. Typographic Scale
+## 3. Spatial Sizing & Typography Scale
 
-The structural font family relies on calibrated modern sans-serif values with strict, uncompromised tracking controls:
+A strict sizing structure ensures your layouts remain clean and easily readable across desktop monitors, tablets, and phones.
 
-- **Primary Hero Main Banner Headings:** `text-[36px]` scaling gracefully on desktops to `sm:text-[52px]` (`font-bold`, `tracking-tight`, `leading-[1.15]`).
-- **Sub-Hero Section Copy Blocks:** `text-[26px]` scaling on desktops to `md:text-[34px]`.
-- **Standard Navigation Interface Links:** `text-[15px]` (`font-medium`, `tracking-tight`).
-- **General Interface Body Copy Text:** `text-[16px]` scaling to `md:text-[18px]` (`leading-relaxed`).
-- **Micro Metadata Overviews / Badges:** `text-[11px]` down to `text-[9px]` (`font-bold`, `uppercase`, `tracking-widest`).
+### Layout Padding & Spacing (Tailwind CSS Equivalents)
+
+- **Micro Spacing (`4px` / `xs`):** Tight content relationships (e.g., separating user icons from text labels).
+- **Element Padding (`8px - 12px` / `sm`):** Inside buttons, badge elements, and table header cells.
+- **Component Containers (`16px - 24px` / `md` to `lg`):** Internal padding for dashboards, data cards, and interactive wizard configurations.
+- **Page Margin Grid (`16px` on mobile, scaling up to `24px` on desktop layouts):** Structural edge alignment.
+
+### Responsive Typography Hierarchy
+
+- **Screen Titles (Dashboard / Summary Headers):** `24px` (bold) on desktop $\rightarrow$ `20px` (bold) on mobile.
+- **Sub-Section Headers (Card Modules):** `16px` (semibold) on desktop $\rightarrow$ `14px` (semibold) on mobile.
+- **Data Fields / Standard Body Text:** `14px` (regular) on desktop $\rightarrow$ `13px` (regular) on mobile.
+- **Labels / Micro Metadata Stamps:** `12px` (medium) on desktop $\rightarrow$ `11px` (medium/mono) on mobile.
 
 ---
 
-## 4. UI Layout Rules
+## 4. Component Border Radius Tokens
 
-1. **Interactive State Scaling:** Active clicks or taps on main navigation controls or actions trigger a quick transform change of `active:scale-[0.98]` or `active:scale-95` to give smooth physical feedback.
-2. **Component Separation:** Always divide distinct page rows using light/dark border dividers (`border-[#E6F0FA]` or `dark:border-slate-900`) instead of relying purely on empty margins.
+To capture a professional, modern aesthetic, hard edges are minimized in favor of progressive rounding based on component scale:
+
+> ### The Progressive Rounding Principle
+>
+> Larger outer containers require broader corners, while smaller interactive elements nested inside them scale down symmetrically.
+
+- **Nested Utility Tags & Badges (`rounded-md`):** `6px` radius. Great for role/status badges.
+- **Buttons, Input Fields, Actions (`rounded-xl`):** `10px - 12px` radius. Fits the average human touch target comfortably.
+- **Main UI Cards & Tables (`rounded-2xl`):** `16px` radius. Softens content frames elegantly.
+- **Avatars & Radial Toggles (`rounded-full`):** Completely circular (`9999px`) to immediately isolate user profiles.
+
+---
+
+## 5. User Experience (UX) Guardrails
+
+- **Data Overflow Preservation:** Tables must encapsulate structural rows using a parent container with horizontal overflow capabilities (`overflow-x-auto`). Columns containing static logs or creation dates drop off cleanly on small screens (`hidden sm:table-cell`).
+- **Visual Action States:** Every button interaction must include explicit hover and active states using transition easing functions (`transition-all duration-150`).
+- [cite_start]**Instant Async Feedback:** Long-running API processes must instantly display a spinner block utilizing your primary brand color (`#0077B6`) to reassure the user that data is currently being fetched or saved[cite: 2].
