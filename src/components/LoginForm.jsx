@@ -42,6 +42,7 @@ const LoginForm = () => {
       const { data, error } = await authClient.signIn.email({
         email: loginData.email,
         password: loginData.password,
+        callbackURL: "/",
       });
 
       if (error) {

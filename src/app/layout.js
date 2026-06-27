@@ -26,7 +26,10 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
       className={`${robotoSans.variable} ${robotoMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300"
+      >
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
