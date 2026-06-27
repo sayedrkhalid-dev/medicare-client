@@ -66,7 +66,7 @@ const LoginForm = () => {
   const handleGoogleLogin = async () => {
     const data = await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/",
+      callbackURL: "https://medicare-client-ruddy.vercel.app",
     });
     console.log(data);
   };
