@@ -1,80 +1,103 @@
-# DESIGN.md
+# Design System Specification (Teal-Trust & Slate Architecture)
 
-## 1. Color Palette Blueprint (Ocean Breeze)
-
-This palette adapts gracefully across themes. [cite_start]The core colors are derived directly from your updated configuration, utilizing clean, high-contrast states to ensure excellent accessibility and visual clarity[cite: 5, 7].
-
-### Color Tokens Map
-
-| Token                 | Hex / RGB Code       | Primary Purpose                                                                     |
-| :-------------------- | :------------------- | :---------------------------------------------------------------------------------- |
-| **Deep Abyssal Blue** | `#03045E`            | [cite_start]Light mode text headings, Dark mode structural panels [cite: 1]         |
-| **Honolulu Blue**     | `#0077B6`            | [cite_start]Branding, Primary interactive buttons, Focus states [cite: 2]           |
-| **Oceanic Cyan**      | `#00B4D8`            | [cite_start]Secondary interactive states, Links, Informative badges [cite: 3]       |
-| **Breeze Tint**       | `rgb(144, 224, 239)` | [cite_start]Soft borders, Light mode accent fills, Dark mode text accents [cite: 4] |
-| **Ice White**         | `#CAF0F8`            | [cite_start]Light mode subtle backgrounds, Dark mode high-contrast text [cite: 6]   |
+This document formalizes the production-ready tokens, structural metrics, layout ratios, and accessibility constraints derived from the core interface modules. All subsequent feature screens, modal layers, dashboards, and responsive blocks must strictly adapt these principles to ensure unified platform consistency.
 
 ---
 
-## 2. Theme Implementation (Light vs. Dark Mode)
+## 1. The 60-30-10 Color Architecture
 
-To keep your user experience simple and cohesive, colors shift predictably across themes to preserve optimal contrast ratios:
+The user interface strictly implements the 60-30-10 hierarchy rule to preserve micro-contrast, visual breathing room, and dynamic illumination transformations across light and dark system viewports.
 
-### Light Mode Layout Matrix
+### 60% Dominant (Surface & Canvas Backdrops)
 
-- **Primary Page Canvas:** `#FFFFFF` (Pure White)
-- [cite_start]**Secondary Surface/Cards:** `#CAF0F8` at `20%` opacity, or flat `#F4FBFD` for subtle separation[cite: 6].
-- [cite_start]**Component Borders:** `rgb(144, 224, 239)` with tight alpha blending (`/30`)[cite: 4].
-- [cite_start]**Primary Text Headers:** `#03045E` (Deep Abyssal Blue)[cite: 1].
-- **Body Text / Labels:** `#475569` (Slate 600) / `#64748B` (Slate 500)
+Establishes the macro-environment layout wrapper. Always pure, neutral, or deep baseline colors with seamless hardware transitions.
 
-### Dark Mode Layout Matrix
+- **Light Mode Base:** `Pure Crisp White (#FFFFFF)`
+- **Light Mode Alternate:** `Slate Tint (#F8FAFC)`
+- **Dark Mode Base:** `Deep Night Slate (#020617)`
+- **Dark Mode Alternate:** `System Dark Charcoal (#0F172A)` / `Tailwind Slate-950`
 
-- [cite_start]**Primary Page Canvas:** `#03045E` blended down with dark slate (`#02042A`) to ensure text readability[cite: 1].
-- [cite_start]**Secondary Surface/Cards:** `#03045E` at a slightly lighter, raised opacity elevation layer[cite: 1].
-- [cite_start]**Component Borders:** `#0077B6` blended down (`/20`) to create soft, glowing divisions[cite: 2].
-- [cite_start]**Primary Text Headers:** `#CAF0F8` (Ice White)[cite: 6].
-- [cite_start]**Body Text / Labels:** `rgb(144, 224, 239)` at high opacity for clean readability[cite: 4].
+### 30% Secondary (Typography Copy & Structural Framing)
 
----
+Establishes structural presence, textual visual hierarchy, and high-trust identification fields.
 
-## 3. Spatial Sizing & Typography Scale
+- **Light Mode Focus Color:** `Premium High-Trust Navy (#1E3A8A)`
+- **Dark Mode Focus Color:** `Pure Silver Chalk (#FFFFFF)` / `Slate-100`
+- **Sub-text Base Text Color:** `Slate Muted Text (#475569)` / `Tailwind Slate-600`
+- **Sub-text Dark Mode Color:** `Slate Soft Muted (#94A3B8)` / `Tailwind Slate-400`
+- **Ambient Accent Micro-Glow Canvas:** `Soft Ice Hue (#E6F0FA)`
 
-A strict sizing structure ensures your layouts remain clean and easily readable across desktop monitors, tablets, and phones.
+### 10% Accent Highlight (Interactive Call-To-Action Controls)
 
-### Layout Padding & Spacing (Tailwind CSS Equivalents)
+Reserved exclusively for primary high-conversion targets, operational micro-badges, validation alerts, and status notifications.
 
-- **Micro Spacing (`4px` / `xs`):** Tight content relationships (e.g., separating user icons from text labels).
-- **Element Padding (`8px - 12px` / `sm`):** Inside buttons, badge elements, and table header cells.
-- **Component Containers (`16px - 24px` / `md` to `lg`):** Internal padding for dashboards, data cards, and interactive wizard configurations.
-- **Page Margin Grid (`16px` on mobile, scaling up to `24px` on desktop layouts):** Structural edge alignment.
-
-### Responsive Typography Hierarchy
-
-- **Screen Titles (Dashboard / Summary Headers):** `24px` (bold) on desktop $\rightarrow$ `20px` (bold) on mobile.
-- **Sub-Section Headers (Card Modules):** `16px` (semibold) on desktop $\rightarrow$ `14px` (semibold) on mobile.
-- **Data Fields / Standard Body Text:** `14px` (regular) on desktop $\rightarrow$ `13px` (regular) on mobile.
-- **Labels / Micro Metadata Stamps:** `12px` (medium) on desktop $\rightarrow$ `11px` (medium/mono) on mobile.
+- **Light Mode Action Accent:** `High-Conversion Deep Teal (#008080)`
+- **Light Mode Accent Hover:** `Saturated Teal Core (#006666)`
+- **Dark Mode Action Accent:** `Electric Glowing Cyan-Teal (#3CD1C2)`
+- **Dark Mode Accent Hover:** `Neon Mint Teal (#2AB0A2)`
 
 ---
 
-## 4. Component Border Radius Tokens
+## 2. Micro-Incline Typography Hierarchies
 
-To capture a professional, modern aesthetic, hard edges are minimized in favor of progressive rounding based on component scale:
+All text blocks must preserve structural line-height ratios (`leading`) to maximize readability constraints across varying responsive device factors.
 
-> ### The Progressive Rounding Principle
->
-> Larger outer containers require broader corners, while smaller interactive elements nested inside them scale down symmetrically.
-
-- **Nested Utility Tags & Badges (`rounded-md`):** `6px` radius. Great for role/status badges.
-- **Buttons, Input Fields, Actions (`rounded-xl`):** `10px - 12px` radius. Fits the average human touch target comfortably.
-- **Main UI Cards & Tables (`rounded-2xl`):** `16px` radius. Softens content frames elegantly.
-- **Avatars & Radial Toggles (`rounded-full`):** Completely circular (`9999px`) to immediately isolate user profiles.
+| Level Element                      | Typography Size | Weights Code      | Leading Line-Height | Tracking Alignment         |
+| :--------------------------------- | :-------------- | :---------------- | :------------------ | :------------------------- |
+| **Display Title (Desktop)**        | `52px`          | Bold (`700`)      | `1.15`              | `tracking-tight`           |
+| **Display Title (Mobile)**         | `36px`          | Bold (`700`)      | `1.15`              | `tracking-tight`           |
+| **Section Header Title**           | `26px`          | Bold (`700`)      | `1.25`              | `tracking-tight`           |
+| **Component Subtitle / Card**      | `20px`          | Bold (`700`)      | `1.3`               | `tracking-normal`          |
+| **Platform Analytics Data**        | `18px`          | Semi-Bold (`600`) | `1.35`              | `tracking-tight`           |
+| **Primary Base Copy Text**         | `16px`          | Normal (`400`)    | `leading-relaxed`   | `tracking-normal`          |
+| **Call-To-Action Label Text**      | `15px`          | Semi-Bold (`600`) | `1.0`               | `tracking-normal`          |
+| **System Description Copy**        | `13px`          | Medium (`500`)    | `leading-normal`    | `tracking-normal`          |
+| **Micro Analytic Category Labels** | `11px`          | Semi-Bold (`600`) | `1.0`               | `tracking-wider uppercase` |
+| **Badge / Footnote Micro-Tags**    | `10px`          | Semi-Bold (`600`) | `1.0`               | `tracking-wider uppercase` |
 
 ---
 
-## 5. User Experience (UX) Guardrails
+## 3. Structural Mechanics, Padding & Radius Rules
 
-- **Data Overflow Preservation:** Tables must encapsulate structural rows using a parent container with horizontal overflow capabilities (`overflow-x-auto`). Columns containing static logs or creation dates drop off cleanly on small screens (`hidden sm:table-cell`).
-- **Visual Action States:** Every button interaction must include explicit hover and active states using transition easing functions (`transition-all duration-150`).
-- [cite_start]**Instant Async Feedback:** Long-running API processes must instantly display a spinner block utilizing your primary brand color (`#0077B6`) to reassure the user that data is currently being fetched or saved[cite: 2].
+Layout configurations must prevent alignment breaking inside liquid grids. The interface maintains strict container boundary restrictions.
+
+### Global Container Maximum Constraints
+
+- **Global Content Bound Wrapper:** `max-w-[1280px]`
+- **Horizontal Page Layout Gutter Padding:** `px-6 sm:px-8`
+- **Vertical Block Margin Padding (Desktop Section):** `py-24 lg:py-32`
+- **Vertical Block Margin Padding (Mobile Section):** `py-32`
+
+### Component Radius Token Specifications
+
+- **Primary Interactive Controls (Buttons):** `rounded-[12px]`
+- **Floating Structural Badge Elements:** `rounded-[10px]`
+- **Macro Glassmorphic Panel Cards:** `rounded-[20px]`
+
+---
+
+## 4. Interaction States & Transitions
+
+Visual assets require uniform duration metrics across all device screens.
+
+- **Global Transitions System Config:** `transition-all duration-200 ease-in-out`
+- **Color Map Transitions Modifiers:** `transition-colors duration-300`
+- **Scale-Down Active Interaction Factor:** `active:scale-[0.98]`
+- **Hover Transform Scaling Matrix:** `scale-105 transform hover:scale-110 transition-transform duration-500`
+
+---
+
+## 5. Ambient Micro-Glow Layering & Glassmorphism
+
+To elevate UI depth without increasing data payload overhead, utilize layered, blurred structural canvas accents.
+
+### Radial Vector Blur Filters
+
+- **Top-Right Sector Aura Ambient Glow:** `absolute top-0 right-0 h-96 w-96 rounded-full bg-[#E6F0FA]/40 dark:bg-slate-900/20 blur-3xl`
+- **Bottom-Left Sector Aura Ambient Glow:** `absolute bottom-0 left-0 h-96 w-96 rounded-full bg-[#008080]/5 dark:bg-[#008080]/3 blur-3xl`
+
+### Glassmorphic Card Mix-Blends
+
+- **Backdrop Container Panel Matrix:** `bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg`
+- **Floating Micro Badge Layer System:** `bg-white/60 dark:bg-slate-950/50 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-xl`
+- **Responsive Dark-Mode Asset Balancing:** In light modes, apply `mix-blend-multiply` to blend graphics naturally with white surfaces. In dark modes, transition to `mix-blend-screen dark:brightness-95 dark:contrast-115 dark:opacity-90` to preserve deep vector readability.

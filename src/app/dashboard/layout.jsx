@@ -47,7 +47,7 @@ export default function DashboardLayout({ children }) {
           </header>
 
           {/* Dynamic Inner Component Workspace Viewport */}
-          <main className="flex-1 p-8 bg-slate-50/50 dark:bg-[#020617] overflow-visible">
+          <main className="flex-1 md:p-2 bg-slate-50/50 dark:bg-[#020617] overflow-visible">
             <div className="max-w-7xl mx-auto space-y-8">{children}</div>
           </main>
 

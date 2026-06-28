@@ -20,16 +20,18 @@ import {
 } from "@/services/users/user.service";
 
 export default function UserDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id;
   const router = useRouter();
+
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Self-Suspension/Server Restriction Warning Modal State
+  // Self-Suspension / Server Restriction Warning Modal State
   const [showSelfSuspendModal, setShowSelfSuspendModal] = useState(false);
 
-  // Fetch real user data from your backend
+  // Fetch real user data from backend
   useEffect(() => {
     if (!id) return;
 
@@ -76,9 +78,11 @@ export default function UserDetailPage() {
       // CATCH SERVER ERROR: Inspect response message text strings or HTTP status status codes
       const errorMessage =
         error?.response?.data?.message || error?.message || "";
+      const lowerMessage = errorMessage.toLowerCase();
+
       if (
-        errorMessage.toLowerCase().includes("self") ||
-        errorMessage.toLowerCase().includes("own account") ||
+        lowerMessage.includes("self") ||
+        lowerMessage.includes("own account") ||
         error?.response?.status === 400 ||
         error?.response?.status === 403
       ) {
@@ -125,7 +129,7 @@ export default function UserDetailPage() {
   const isActiveState = displayStatus.toLowerCase() === "active";
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto p-4 md:p-6 min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-600 dark:text-slate-300 transition-colors duration-200">
+    <div className="space-y-4 max-w-7xl p-4 mx-auto min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-600 dark:text-slate-300 transition-colors duration-200">
       {/* Return Navigation Bar Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 select-none">
         <button
@@ -142,7 +146,7 @@ export default function UserDetailPage() {
       </div>
 
       {/* Main Core Profile Information Summary Block */}
-      <div className="bg-white dark:bg-[#111827] border border-[rgb(144,224,239)]/30 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm">
+      <div className="bg-white dark:bg-[#111827] border border-[#90E0EF]/30 dark:border-slate-800 rounded-2xl p-5 md:p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
           <div className="flex items-center gap-4">
             {user.image ? (
@@ -151,7 +155,7 @@ export default function UserDetailPage() {
                 alt={user.name || "User"}
                 className="w-14 h-14 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
                 onError={(e) => {
-                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "User")}&background=CAF0F8&color=03045E`;
+                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "User")}&background=CAF0F8&color=03045E`;
                 }}
               />
             ) : (
@@ -181,7 +185,7 @@ export default function UserDetailPage() {
           </span>
         </div>
 
-        {/* Informative Structured Grid Grid Layout */}
+        {/* Informative Structured Grid Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 text-sm select-none">
           <div className="p-4 bg-slate-50/70 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-xl">
             <span className="block text-xs font-semibold text-[#0077B6] dark:text-slate-400 uppercase tracking-wider">
@@ -306,7 +310,7 @@ export default function UserDetailPage() {
 
       {/* SERVER-TRIGGERED EXCEPTION MODAL */}
       {showSelfSuspendModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none">
           {/* Backdrop Blur Layer */}
           <div
             className="absolute inset-0 bg-[#020417]/60 dark:bg-[#000000]/80 backdrop-blur-sm transition-opacity"
@@ -314,7 +318,7 @@ export default function UserDetailPage() {
           />
 
           {/* Modal Container */}
-          <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#111827] border border-rose-200/40 dark:border-rose-950/40 p-6 text-left shadow-xl transition-all space-y-4">
+          <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-[#111827] border border-rose-200/40 dark:border-rose-950/40 p-6 text-left shadow-xl transition-all space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-start gap-3.5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600">
                 <RxExclamationTriangle className="h-5 w-5" />
