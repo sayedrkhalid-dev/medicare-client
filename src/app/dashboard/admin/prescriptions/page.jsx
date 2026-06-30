@@ -2,90 +2,68 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import {
   RxMagnifyingGlass,
-  RxCalendar,
-  RxFile,
   RxEyeOpen,
   RxChevronLeft,
   RxChevronRight,
   RxDoubleArrowLeft,
   RxDoubleArrowRight,
 } from "react-icons/rx";
-
-// Mock database keeping comprehensive diagnostic records across the node cluster
-const initialPrescriptionsDatabase = [
-  {
-    id: "RX-9901",
-    patientName: "Eleanor Vance",
-    doctorName: "Dr. Marcus Vance",
-    diagnosis: "Chronic Migraine Refractory",
-    medication: "Sumatriptan 50mg",
-    issuedDate: "2026-06-25",
-    status: "Active",
-  },
-  {
-    id: "RX-4122",
-    patientName: "Dominic Snyder",
-    doctorName: "Dr. Amara Patel",
-    specialty: "Pediatrics",
-    diagnosis: "Acute Strep Pharyngitis",
-    medication: "Amoxicillin 250mg/5mL",
-    issuedDate: "2026-06-24",
-    status: "Fulfilled",
-  },
-  {
-    id: "RX-8830",
-    patientName: "Clara Oswald",
-    doctorName: "Dr. Melissa Zhao",
-    diagnosis: "Allergic Rhinitis Chronic",
-    medication: "Fluticasone Propionate",
-    issuedDate: "2026-06-19",
-    status: "Fulfilled",
-  },
-  {
-    id: "RX-5511",
-    patientName: "Arthur Dent",
-    doctorName: "Dr. Alan Grant",
-    diagnosis: "General Fatigue Check",
-    medication: "Vitamin D3 50000 IU",
-    issuedDate: "2026-05-12",
-    status: "Expired",
-  },
-];
+import { getAllPrescriptions } from "@/services/prescriptions/prescription.service";
 
 export default function AdminPrescriptionsLogPage() {
+  const [prescriptions, setPrescriptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All Records");
 
-  // Pagination State Parameters
+  // Server-side pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 5;
 
-  // Reset page position to baseline when filters mutate
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
-  // Step 1: Compute matching data arrays based on criteria
-  const filteredRecords = initialPrescriptionsDatabase.filter((rx) => {
-    const matchesStatus =
-      statusFilter === "All Records" || rx.status === statusFilter;
-    const matchesSearch =
-      rx.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rx.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rx.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      rx.diagnosis.toLowerCase().includes(searchTerm.toLowerCase());
+  useEffect(() => {
+    const fetchPrescriptions = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getAllPrescriptions({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchTerm,
+          status: statusFilter === "All Records" ? undefined : statusFilter,
+        });
+        setPrescriptions(data.data || []);
+        setTotalPages(data.meta?.totalPages || 1);
+        setTotalItems(data.meta?.total || 0);
+      } catch (error) {
+        console.error("Failed to load prescriptions:", error);
+        toast.error(
+          error?.message ||
+            "Couldn't load prescriptions. Please refresh the page.",
+        );
+        setPrescriptions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchPrescriptions();
+  }, [currentPage, searchTerm, statusFilter]);
 
-    return matchesStatus && matchesSearch;
-  });
-
-  // Step 2: Slice current data segments cleanly
-  const totalItems = filteredRecords.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedRecords = filteredRecords.slice(startIndex, endIndex);
+  const runSearch = () => {
+    setSearchTerm(searchDraft);
+  };
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -102,15 +80,25 @@ export default function AdminPrescriptionsLogPage() {
 
       {/* Filter Pipeline Module */}
       <div className="flex flex-col sm:flex-row gap-3 bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 p-4 rounded-[16px] shadow-sm">
-        <div className="relative flex-1">
-          <RxMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+        <div className="relative flex-1 flex items-stretch">
+          <RxMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
           <input
             type="text"
             placeholder="Search via Patient Name, Doctor, Diagnosis statement, or RX ID Token..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-[13px] bg-slate-50/50 dark:bg-slate-900/40 border border-[#E6F0FA] dark:border-slate-800 rounded-[12px] text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-[#1E3A8A] dark:focus:border-slate-700 transition-colors"
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") runSearch();
+            }}
+            className="w-full pl-10 pr-20 py-2.5 text-[13px] bg-slate-50/50 dark:bg-slate-900/40 border border-[#E6F0FA] dark:border-slate-800 rounded-[12px] text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-[#1E3A8A] dark:focus:border-slate-700 transition-colors"
           />
+          <button
+            type="button"
+            onClick={runSearch}
+            className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 text-[12px] font-bold rounded-[9px] bg-[#1E3A8A] hover:bg-[#162d6b] dark:bg-slate-800 dark:hover:bg-slate-700 text-white transition-colors duration-200 active:scale-[0.97] cursor-pointer"
+          >
+            Search
+          </button>
         </div>
 
         <select
@@ -140,33 +128,44 @@ export default function AdminPrescriptionsLogPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-900/60 text-[13px]">
-              {paginatedRecords.length > 0 ? (
-                paginatedRecords.map((rx) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center">
+                    <div className="flex items-center justify-center gap-2 text-[#1E3A8A] dark:text-[#3cd1c2]">
+                      <div className="w-5 h-5 border-2 border-t-transparent border-current rounded-full animate-spin" />
+                      <span className="text-[13px] font-medium text-slate-400">
+                        Loading prescription records...
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : prescriptions.length > 0 ? (
+                prescriptions.map((rx) => (
                   <tr
-                    key={rx.id}
+                    key={rx._id}
                     className="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors group"
                   >
                     <td className="py-4 px-6 font-mono font-bold text-[12px]">
                       <Link
-                        href={`/dashboard/admin/prescriptions/${rx.id}`}
+                        href={`/dashboard/admin/prescriptions/${rx._id}`}
                         className="text-slate-500 hover:text-[#1E3A8A] dark:hover:text-[#3cd1c2] underline underline-offset-2 transition-colors"
                       >
-                        {rx.id}
+                        {rx._id}
                       </Link>
                     </td>
                     <td className="py-4 px-6 font-bold text-slate-900 dark:text-white">
-                      {rx.patientName}
+                      {rx.patient?.name || "Unknown Patient"}
                     </td>
                     <td className="py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
-                      {rx.doctorName}
+                      {rx.doctor?.name || "Unknown Doctor"}
                     </td>
                     <td className="py-4 px-6">
                       <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 dark:bg-slate-900 dark:text-slate-400">
-                        {rx.diagnosis}
+                        {rx.diagnosis || "—"}
                       </span>
                     </td>
                     <td className="py-4 px-6 font-medium text-slate-600 dark:text-slate-300">
-                      {rx.medication}
+                      {rx.medication || "—"}
                     </td>
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-3">
@@ -179,11 +178,11 @@ export default function AdminPrescriptionsLogPage() {
                                 : "bg-slate-50 text-slate-400 border-slate-200 dark:bg-slate-900 dark:text-slate-500"
                           }`}
                         >
-                          {rx.status}
+                          {rx.status || "—"}
                         </span>
 
                         <Link
-                          href={`/dashboard/admin/prescriptions/${rx.id}`}
+                          href={`/dashboard/admin/prescriptions/${rx._id}`}
                           className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-white dark:bg-transparent transition-colors"
                           title="Inspect Prescription Record"
                         >
@@ -209,7 +208,7 @@ export default function AdminPrescriptionsLogPage() {
         </div>
 
         {/* Dynamic Structural Pagination Engine */}
-        {totalItems > 0 && (
+        {!isLoading && totalItems > 0 && (
           <div className="bg-slate-50/40 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-900 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
             <span className="text-[12px] font-medium text-slate-400">
               Showing{" "}

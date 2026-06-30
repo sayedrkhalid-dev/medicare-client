@@ -1,40 +1,67 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import {
   RxArrowLeft,
   RxCalendar,
   RxPerson,
   RxFile,
-  RxInfoSign,
   RxDownload,
+  RxQuestionMarkCircled,
 } from "react-icons/rx";
-
-// Mock database registry for targeted single prescription audits
-const prescriptionsDatabase = {
-  "RX-9901": {
-    patientName: "Eleanor Vance",
-    patientId: "USR-9021",
-    doctorName: "Dr. Marcus Vance",
-    doctorId: "DOC-2941",
-    diagnosis: "Chronic Migraine Refractory",
-    medication: "Sumatriptan 50mg",
-    dosageInstructions:
-      "Take one tablet orally at the immediate onset of aura or acute phase migraine. Do not exceed 100mg within any 24-hour cycle window.",
-    refillsRemaining: 2,
-    issuedDate: "2026-06-25",
-    expirationDate: "2026-12-25",
-    status: "Active",
-  },
-};
+import { getPrescriptionById } from "@/services/prescriptions/prescription.service";
 
 export default function AdminPrescriptionDetailPage() {
   const { id } = useParams();
   const router = useRouter();
 
-  // Fallback selector maintaining layout continuity for arbitrary mock IDs
-  const rx = prescriptionsDatabase[id] || prescriptionsDatabase["RX-9901"];
+  const [rx, setRx] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPrescription = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getPrescriptionById(id);
+        setRx(data);
+      } catch (error) {
+        console.error("Failed to load prescription:", error);
+        toast.error(error?.message || "Couldn't load this prescription.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (id) fetchPrescription();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-[#1E3A8A] dark:text-[#3cd1c2]">
+        <div className="w-8 h-8 border-2 border-t-transparent border-current rounded-full animate-spin" />
+        <span className="text-sm font-medium text-slate-400">
+          Loading prescription record...
+        </span>
+      </div>
+    );
+  }
+
+  if (!rx) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-slate-400">
+        <span className="text-sm font-medium">
+          This prescription couldn't be found.
+        </span>
+        <button
+          onClick={() => router.back()}
+          className="text-[13px] font-bold text-[#1E3A8A] dark:text-[#3cd1c2] hover:underline"
+        >
+          Go back
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -57,7 +84,7 @@ export default function AdminPrescriptionDetailPage() {
                 : "bg-slate-50 text-slate-400 border-slate-200"
           }`}
         >
-          Voucher {rx.status}
+          Voucher {rx.status || "Unknown"}
         </span>
       </div>
 
@@ -69,7 +96,7 @@ export default function AdminPrescriptionDetailPage() {
           <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6 shadow-sm space-y-4">
             <div>
               <span className="text-[11px] font-mono font-bold text-slate-400">
-                Registry Token: {id}
+                Registry Token: {rx._id}
               </span>
               <h3 className="text-[14px] font-bold text-slate-900 dark:text-white uppercase tracking-wider mt-2">
                 Linked Profile Nodes
@@ -84,10 +111,10 @@ export default function AdminPrescriptionDetailPage() {
                     Patient Entity
                   </span>
                   <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                    {rx.patientName}
+                    {rx.patient?.name || "Unknown Patient"}
                   </span>
                   <span className="text-[11px] font-mono text-slate-400 mt-0.5">
-                    {rx.patientId}
+                    {rx.patient?._id || "—"}
                   </span>
                 </div>
               </div>
@@ -99,10 +126,10 @@ export default function AdminPrescriptionDetailPage() {
                     Prescribing Physician
                   </span>
                   <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                    {rx.doctorName}
+                    {rx.doctor?.name || "Unknown Doctor"}
                   </span>
                   <span className="text-[11px] font-mono text-slate-400 mt-0.5">
-                    {rx.doctorId}
+                    {rx.doctor?._id || "—"}
                   </span>
                 </div>
               </div>
@@ -113,29 +140,29 @@ export default function AdminPrescriptionDetailPage() {
           <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6 shadow-sm space-y-5">
             <div className="border-b border-slate-50 dark:border-slate-900/60 pb-4">
               <span className="text-slate-400 text-[11px] font-bold uppercase block">
-                Clinical Diagnosis Vector
+                Clinical Diagnosis
               </span>
               <span className="text-[15px] font-black text-slate-900 dark:text-white mt-1 block bg-slate-50 dark:bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-transparent w-fit">
-                {rx.diagnosis}
+                {rx.diagnosis || "—"}
               </span>
             </div>
 
             <div className="space-y-4 text-[13px] font-medium">
               <div>
                 <span className="text-slate-400 block text-[11px] font-bold uppercase">
-                  Assigned Drug Formula
+                  Assigned Medication
                 </span>
                 <span className="text-[#1E3A8A] dark:text-[#3cd1c2] font-black text-[16px] block mt-0.5">
-                  {rx.medication}
+                  {rx.medication || "—"}
                 </span>
               </div>
 
               <div>
                 <span className="text-slate-400 block text-[11px] font-bold uppercase">
-                  Regime Intake Instructions
+                  Dosage Instructions
                 </span>
                 <p className="text-slate-700 dark:text-slate-300 mt-1.5 leading-relaxed font-semibold">
-                  {rx.dosageInstructions}
+                  {rx.dosageInstructions || "No dosage instructions recorded."}
                 </p>
               </div>
             </div>
@@ -152,39 +179,51 @@ export default function AdminPrescriptionDetailPage() {
             <div className="space-y-3 font-medium text-[13px]">
               <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-900 pb-2.5">
                 <span className="text-slate-400 flex items-center gap-1.5">
-                  <RxCalendar className="w-4 h-4" /> Issue Timestamp
+                  <RxCalendar className="w-4 h-4" /> Issue Date
                 </span>
                 <span className="text-slate-700 dark:text-slate-200 font-mono font-bold">
-                  {rx.issuedDate}
+                  {rx.issuedDate
+                    ? new Date(rx.issuedDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "—"}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-900 pb-2.5">
                 <span className="text-slate-400 flex items-center gap-1.5">
-                  <RxCalendar className="w-4 h-4" /> Expiry Threshold
+                  <RxCalendar className="w-4 h-4" /> Expiry Date
                 </span>
                 <span className="text-slate-700 dark:text-slate-200 font-mono font-bold">
-                  {rx.expirationDate}
+                  {rx.expirationDate
+                    ? new Date(rx.expirationDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "—"}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-900 pb-2.5">
                 <span className="text-slate-400 flex items-center gap-1.5">
-                  <RxFile className="w-4 h-4" /> Refill Quantities
+                  <RxFile className="w-4 h-4" /> Refills Remaining
                 </span>
                 <span className="text-slate-700 dark:text-slate-200 font-bold">
-                  {rx.refillsRemaining} remaining
+                  {rx.refillsRemaining ?? "—"}
                 </span>
               </div>
             </div>
 
+            {/* No download/PDF endpoint exists yet, so this is disabled
+                rather than faking a download with a console.log. */}
             <button
-              onClick={() =>
-                console.log(
-                  `Triggering secure digital script download for token: ${id}`,
-                )
-              }
-              className="w-full mt-2 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-[13px] rounded-[10px] transition-colors flex items-center justify-center gap-1.5"
+              disabled
+              title="Not available yet — PDF export isn't supported by the backend yet."
+              className="w-full mt-2 py-2.5 bg-slate-900/40 dark:bg-slate-800/40 text-white font-bold text-[13px] rounded-[10px] flex items-center justify-center gap-1.5 cursor-not-allowed"
             >
               <RxDownload className="w-4 h-4" /> Download Signed PDF
+              <RxQuestionMarkCircled className="w-3.5 h-3.5 opacity-70" />
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import {
   RxMagnifyingGlass,
   RxChevronRight,
@@ -20,54 +21,78 @@ import {
 } from "@/services/users/user.service";
 
 export default function UserManagementPage() {
-  const [allUsers, setAllUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+
+  const [isSelfSuspending, setIsSelfSuspending] = useState(false);
+  const [selfSuspendMessage, setSelfSuspendMessage] = useState("");
+
+  const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusTab, setStatusTab] = useState("active");
-
-  // Self-Suspension Error Modal State
-  const [showSelfSuspendModal, setShowSelfSuspendModal] = useState(false);
-
-  // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
   const itemsPerPage = 10;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
 
   // 1. Fetch live user records
-  const fetchUserData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await getAllUsers({
-        role: roleFilter === "all" ? undefined : roleFilter,
-      });
+  useEffect(() => {
+    const fetchUserData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getAllUsers({
+          page: currentPage,
+          limit: itemsPerPage,
+          search: searchTerm,
+          status: statusTab,
+          role: roleFilter === "all" ? undefined : roleFilter,
+        });
 
-      if (Array.isArray(data)) {
-        setAllUsers(data);
-      } else if (data && Array.isArray(data.data)) {
-        setAllUsers(data.data);
-      } else {
-        setAllUsers([]);
+        setCurrentPage(data.meta.page);
+        setTotalPages(data.meta.totalPages);
+        setTotalItems(data.meta.total);
+        setUsers(data.data);
+      } catch (error) {
+        console.error("Failed fetching system users:", error);
+        setUsers([]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Failed fetching system users:", error);
-      setAllUsers([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
+    };
     fetchUserData();
-  }, [roleFilter]);
+  }, [currentPage, roleFilter, searchTerm, statusTab]);
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusTab, roleFilter]);
+    const setCurrPage = () => setCurrentPage(1);
+    setCurrPage();
+  }, [searchTerm, roleFilter, statusTab]);
+
+  useEffect(() => {
+    if (!isSelfSuspending) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setIsSelfSuspending(false);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isSelfSuspending]);
 
   // 2. Administrative Action Handlers with Dynamic Server Error Catching
   const handleToggleStatus = async (userId, currentStatus) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Couldn't identify this user. Please refresh and try again.");
+      return;
+    }
 
     setActionLoadingId(userId);
     const isCurrentlyActive = currentStatus?.toLowerCase() === "active";
@@ -79,54 +104,36 @@ export default function UserManagementPage() {
         await activateUserById(userId);
       }
 
-      setAllUsers((prevUsers) =>
-        prevUsers.map((u) => {
-          if (u._id === userId) {
-            return { ...u, status: isCurrentlyActive ? "suspended" : "active" };
-          }
-          return u;
-        }),
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u._id === userId
+            ? { ...u, status: isCurrentlyActive ? "suspended" : "active" }
+            : u,
+        ),
       );
+
+      toast.success(isCurrentlyActive ? "User suspended." : "User activated.");
     } catch (error) {
-      console.error("Administrative status update failed:", error);
-
-      const errorMessage =
-        error?.response?.data?.message || error?.message || "";
-
       if (
-        errorMessage.toLowerCase().includes("self") ||
-        errorMessage.toLowerCase().includes("own account") ||
-        error?.response?.status === 400 ||
-        error?.response?.status === 403
+        error.status === 400 &&
+        error.message.includes("cannot suspend your own account")
       ) {
-        setShowSelfSuspendModal(true);
+        setIsSelfSuspending(true);
+        setSelfSuspendMessage(error.message);
+      } else {
+        console.error("Administrative status update failed:", error);
+        toast.error(
+          isCurrentlyActive
+            ? "Couldn't suspend this user. Please try again."
+            : "Couldn't activate this user. Please try again.",
+        );
       }
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // 3. Client-side search & status tab filtering
-  const filteredUsers = allUsers.filter((user) => {
-    const matchesSearch =
-      !searchTerm ||
-      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const currentStatus = user.status || "active";
-    const matchesStatus =
-      currentStatus.toLowerCase() === statusTab.toLowerCase();
-
-    return matchesSearch && matchesStatus;
-  });
-
-  // 4. Compute pagination dimensions
-  const totalItems = filteredUsers.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-
+  // 3. handle filter change
   const handleFilterChange = (type, value) => {
     if (type === "role") setRoleFilter(value);
     if (type === "status") setStatusTab(value);
@@ -138,28 +145,6 @@ export default function UserManagementPage() {
       {/* Ambient Micro-Glow Framework elements mapping from system architecture guidelines */}
       <div className="absolute top-0 right-0 -mt-24 -mr-24 h-96 w-96 rounded-full bg-[#E6F0FA]/40 dark:bg-slate-900/20 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -mb-24 -ml-24 h-96 w-96 rounded-full bg-[#008080]/5 dark:bg-[#008080]/3 blur-3xl pointer-events-none" />
-
-      {/* Header Block Section */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 select-none">
-        <div>
-          {/* Secondary Focus Color: 30% Premium High-Trust Navy (#1E3A8A) | Dark Mode White */}
-          <h2 className="text-lg font-bold tracking-tight text-[#1E3A8A] dark:text-white">
-            User Directory
-          </h2>
-          <p className="text-[13px] font-normal text-slate-500 dark:text-slate-400 mt-1">
-            Manage, filter, and modify administrative access levels for
-            accounts.
-          </p>
-        </div>
-        {/* 10% Action Accent Rule: High-Conversion Deep Teal (#008080) */}
-        <button
-          onClick={() => console.log("Init registration modal")}
-          className="inline-flex items-center justify-center gap-2 bg-[#008080] hover:bg-[#006666] dark:hover:bg-[#2ab0a2] active:scale-[0.98] text-[#FFFFFF] transition-all duration-200 px-6 py-3.5 rounded-[12px] text-[15px] font-semibold shadow-md tracking-normal w-full sm:w-auto shrink-0 cursor-pointer"
-        >
-          <RxPlus className="w-4 h-4 stroke-[1.5]" />
-          <span>Register New User</span>
-        </button>
-      </div>
 
       {/* Filters & Control Block Framework - Implements Custom Border Overlay Shades */}
       <div className="relative z-10 bg-[#FFFFFF] dark:bg-slate-950 border border-[#E6F0FA] dark:border-slate-900 p-4 rounded-[20px] shadow-sm space-y-4 transition-colors duration-300">
@@ -263,8 +248,11 @@ export default function UserManagementPage() {
                     </div>
                   </td>
                 </tr>
-              ) : paginatedUsers.length > 0 ? (
-                paginatedUsers.map((user) => {
+              ) : users.length > 0 ? (
+                users.map((user) => {
+                  // FIX #5: key/loading-state and the click handler now agree on
+                  // which id they're using. If _id is missing, the handler will
+                  // catch it and toast instead of silently doing nothing.
                   const currentUserId = user._id || user.email;
                   const isActioning = actionLoadingId === currentUserId;
                   const isActiveState =
@@ -281,13 +269,10 @@ export default function UserManagementPage() {
                             <img
                               src={user.image}
                               alt={user.name || "User"}
-                              className="w-8 h-8 md:w-9 h-9 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-[#E6F0FA] dark:border-slate-800"
-                              onError={(e) => {
-                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || "User")}&background=E6F0FA&color=1E3A8A`;
-                              }}
+                              className="w-8 h-8 md:w-9 md:h-9 rounded-full object-cover bg-slate-100 dark:bg-slate-800 border border-[#E6F0FA] dark:border-slate-800"
                             />
                           ) : (
-                            <div className="w-8 h-8 md:w-9 h-9 rounded-full bg-[#E6F0FA]/60 dark:bg-slate-900/50 border border-[#E6F0FA] dark:border-slate-800 text-[#1E3A8A] dark:text-slate-400 flex items-center justify-center font-bold capitalize text-[13px]">
+                            <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-[#E6F0FA]/60 dark:bg-slate-900/50 border border-[#E6F0FA] dark:border-slate-800 text-[#1E3A8A] dark:text-slate-400 flex items-center justify-center font-bold capitalize text-[13px]">
                               {(user.name || "U").charAt(0)}
                             </div>
                           )}
@@ -415,10 +400,13 @@ export default function UserManagementPage() {
             </span>
 
             <div className="flex items-center gap-1 w-full sm:w-auto justify-center">
+              {/* FIX #2: disabled props restored so buttons actually stop
+                  working (and visually grey out) at the start/end of the
+                  range, instead of staying clickable forever. */}
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1}
-                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
+                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
               >
                 <RxDoubleArrowLeft className="w-3.5 h-3.5" />
               </button>
@@ -426,7 +414,7 @@ export default function UserManagementPage() {
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
+                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
               >
                 <RxChevronLeft className="w-3.5 h-3.5" />
               </button>
@@ -440,7 +428,7 @@ export default function UserManagementPage() {
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
                 disabled={currentPage === totalPages}
-                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
+                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
               >
                 <RxChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -448,7 +436,7 @@ export default function UserManagementPage() {
               <button
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage === totalPages}
-                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
+                className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] bg-[#FFFFFF] dark:bg-transparent text-slate-400 disabled:opacity-20 disabled:cursor-not-allowed hover:bg-[#F8FAFC] dark:hover:bg-slate-800 transition-colors duration-200"
               >
                 <RxDoubleArrowRight className="w-3.5 h-3.5" />
               </button>
@@ -457,28 +445,40 @@ export default function UserManagementPage() {
         )}
       </div>
 
-      {/* SERVER-TRIGGERED ERROR MODAL: Implements standard system glassmorphism overlay structure */}
-      {showSelfSuspendModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none animate-fadeIn">
+      {/* FIX #1: the self-suspend alert modal, previously set in state but never rendered */}
+      {isSelfSuspending && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none animate-fadeIn"
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="self-suspend-title"
+          aria-describedby="self-suspend-desc"
+        >
           <div
             className="absolute inset-0 bg-[#020617]/60 dark:bg-black/80 backdrop-blur-sm transition-opacity"
-            onClick={() => setShowSelfSuspendModal(false)}
+            aria-hidden="true"
           />
 
-          {/* Core Panel Frame - Set with macro glass container rules */}
-          <div className="relative w-full max-w-md transform overflow-hidden rounded-[20px] bg-[#FFFFFF] dark:bg-slate-950 border border-rose-200/40 dark:border-rose-950/40 p-6 text-left shadow-xl transition-all space-y-4">
+          <div
+            className="relative w-full max-w-md overflow-hidden rounded-[20px] bg-[#FFFFFF] dark:bg-slate-950 border border-rose-200/40 dark:border-rose-950/40 p-6 text-left shadow-xl space-y-4 animate-scaleIn"
+            role="document"
+          >
             <div className="flex items-start gap-3.5">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-rose-50 dark:bg-rose-950/30 text-rose-600">
-                <RxExclamationTriangle className="h-5 w-5" />
+                <RxExclamationTriangle className="h-5 w-5" aria-hidden="true" />
               </div>
               <div className="space-y-1.5 flex-1">
-                <h3 className="text-[18px] font-bold text-[#1E3A8A] dark:text-white tracking-tight">
-                  Action Blocked by Server
+                <h3
+                  id="self-suspend-title"
+                  className="text-[18px] font-bold text-[#1E3A8A] dark:text-white tracking-tight"
+                >
+                  Server suspended
                 </h3>
-                <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                  You cannot suspend your own administrative profile. Suspending
-                  your account will instantly terminate your active dashboard
-                  session and system permissions.
+                <p
+                  id="self-suspend-desc"
+                  className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed"
+                >
+                  {selfSuspendMessage}
                 </p>
               </div>
             </div>
@@ -486,10 +486,11 @@ export default function UserManagementPage() {
             <div className="flex items-center justify-end pt-2">
               <button
                 type="button"
-                onClick={() => setShowSelfSuspendModal(false)}
+                onClick={() => setIsSelfSuspending(false)}
+                autoFocus
                 className="w-full sm:w-auto px-5 py-2.5 bg-[#F8FAFC] hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-[#1E3A8A] dark:text-slate-200 font-bold text-[13px] rounded-[12px] transition-all duration-200 active:scale-[0.98] border border-[#E6F0FA] dark:border-slate-800 cursor-pointer"
               >
-                Acknowledge & Close
+                Acknowledge &amp; Close
               </button>
             </div>
           </div>
