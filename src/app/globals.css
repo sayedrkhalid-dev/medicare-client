@@ -6,6 +6,21 @@
   --font-mono: var(--font-roboto-mono), monospace;
 }
 
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.18s ease-out;
+}
+
 /* ==========================================================================
    1. GLOBAL VIEWPORT ANATOMY (html, body, layout canvas)
    ========================================================================== */

@@ -12,26 +12,30 @@ import { API_URL } from "./api";
 export const fetcher = async (endpoint, options = {}) => {
   const response = await fetch(`${API_URL}${endpoint}`, {
     credentials: "include",
-
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
     },
-
     ...options,
   });
 
-  let data = null;
+  let result = null;
 
   try {
-    data = await response.json();
+    result = await response.json();
   } catch {
-    data = null;
+    result = null;
   }
+
+  console.log("Response : ", response);
+  console.log("Result : ", result);
 
   if (!response.ok) {
-    throw new Error(data?.message || "Something went wrong.");
+    const error = new Error(result?.message || "Something went wrong.");
+    error.status = response.status;
+    error.data = result;
+    throw error;
   }
 
-  return data.data;
+  return result;
 };
