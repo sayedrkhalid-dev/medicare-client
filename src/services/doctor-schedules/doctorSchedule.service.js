@@ -5,7 +5,7 @@ import { buildQuery } from "@/lib/query";
  * Create doctor schedule
  */
 export const createSchedule = async (payload) => {
-  return fetcher("/doctor-schedules", {
+  return fetcher("/doctor-schedules/create", {
     method: "POST",
     body: JSON.stringify(payload),
   });
@@ -21,10 +21,8 @@ export const getMySchedules = async () => {
 /**
  * Get doctor schedules
  */
-export const getSchedules = async (params = {}) => {
-  const query = buildQuery(params);
-
-  return fetcher(`/doctor-schedules?${query}`);
+export const getDoctorSchedules = async (doctorId) => {
+  return fetcher(`/doctor-schedules/${doctorId}`);
 };
 
 /**

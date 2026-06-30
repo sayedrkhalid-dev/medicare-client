@@ -67,6 +67,11 @@ const navigationConfig = {
       { label: "Overview", href: "/dashboard/doctor", icon: RxDashboard },
       { label: "Profile", href: "/dashboard/doctor/profile", icon: RxPerson },
       {
+        label: "Applications",
+        href: "/dashboard/doctor/applications",
+        icon: RxPerson,
+      },
+      {
         label: "Schedule Management",
         href: "/dashboard/doctor/schedules",
         icon: RxCardStack,

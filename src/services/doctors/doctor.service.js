@@ -1,13 +1,14 @@
+// services/doctors/doctor.service.js
 import { fetcher } from "@/lib/fetcher";
 import { buildQuery } from "@/lib/query";
 
 /**
  * Get all doctors
  */
-export const getDoctors = async (params = {}) => {
+export const getAllDoctors = async (params = {}) => {
   const query = buildQuery(params);
-
-  return fetcher(`/doctors?${query}`);
+  const response = await fetcher(`/doctors/all?${query}`);
+  return response;
 };
 
 /**
@@ -27,7 +28,7 @@ export const getMyDoctorProfile = async () => {
 /**
  * Suspend doctor
  */
-export const suspendDoctor = async (doctorId) => {
+export const suspendDoctorById = async (doctorId) => {
   return fetcher(`/doctors/${doctorId}/suspend`, {
     method: "PATCH",
   });
@@ -36,7 +37,7 @@ export const suspendDoctor = async (doctorId) => {
 /**
  * Activate doctor
  */
-export const activateDoctor = async (doctorId) => {
+export const activateDoctorById = async (doctorId) => {
   return fetcher(`/doctors/${doctorId}/activate`, {
     method: "PATCH",
   });

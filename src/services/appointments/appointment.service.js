@@ -21,12 +21,30 @@ export const createAppointment = async (payload) => {
 };
 
 /**
- * Get my appointments
+ * Get doctor appointments
  */
-export const getMyAppointments = async (params = {}) => {
+export const getDoctorAppointments = async (params = {}) => {
   const query = buildQuery(params);
 
-  return fetcher(`/appointments/me?${query}`);
+  return fetcher(`/appointments/doctor-appointments?${query}`);
+};
+
+/**
+ * Get patient appointments
+ */
+export const getPatientAppointments = async (params = {}) => {
+  const query = buildQuery(params);
+
+  return fetcher(`/appointments/patient-appointments?${query}`);
+};
+
+/**
+ * Get all appointments (admin)
+ */
+export const getAllAppointments = async (params = {}) => {
+  const query = buildQuery(params);
+
+  return fetcher(`/appointments/all?${query}`);
 };
 
 /**

@@ -21,7 +21,7 @@ export const getMyApplications = async () => {
 /**
  * Get all doctor applications
  */
-export const getApplications = async (params = {}) => {
+export const getAllApplications = async (params = {}) => {
   const query = buildQuery(params);
 
   return fetcher(`/doctor-applications?${query}`);

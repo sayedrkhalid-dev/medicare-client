@@ -21,6 +21,15 @@ export const getMyPrescriptions = async (params = {}) => {
 };
 
 /**
+ * Get all prescriptions (admin)
+ */
+export const getAllPrescriptions = async (params = {}) => {
+  const query = buildQuery(params);
+
+  return fetcher(`/prescriptions/all?${query}`);
+};
+
+/**
  * Get prescription by ID
  */
 export const getPrescriptionById = async (prescriptionId) => {
