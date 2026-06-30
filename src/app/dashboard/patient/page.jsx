@@ -1,11 +1,20 @@
 "use client";
 
-import AppointmentHistory from "../components/AppointmentHistory";
-import AppointmentTrends from "../components/AppointmentTrends";
-import FavoriteDoctors from "../components/FavoriteDoctors";
-import PatientStats from "../components/PatientStats";
-import RecentActivities from "../components/RecentActivities";
-import TransactionHistory from "../components/TransactionHistory";
+import AppointmentHistory from "./components/AppointmentHistory";
+import AppointmentTrends from "./components/AppointmentTrends";
+import FavoriteDoctors from "./components/FavoriteDoctors";
+import PatientStats from "./components/PatientStats";
+import RecentActivities from "./components/RecentActivities";
+import TransactionHistory from "./components/TransactionHistory";
+import { getMe } from "@/services/users/user.service";
+import { getMyAppointments } from "@/services/appointments/appointment.service";
+import { getMyReviews } from "@/services/reviews/review.service";
+import { getMyPayments } from "@/services/payments/payment.service";
+
+// const me = await getMe();
+// const appointments = await getMyAppointments();
+// const reviews = await getMyReviews();
+// const payments = await getMyPayments();
 
 export default function PatientDashboardPage() {
   // Centralized Mock Data Engine
