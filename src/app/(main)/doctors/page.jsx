@@ -24,7 +24,7 @@ export default function FindDoctorsPage() {
     minFee: "",
     maxFee: "",
     page: 1,
-    limit: 10,
+    limit: 4,
   });
 
   const [searchInput, setSearchInput] = useState("");
@@ -89,7 +89,7 @@ export default function FindDoctorsPage() {
       minFee: "",
       maxFee: "",
       page: 1,
-      limit: 8,
+      limit: 4,
     });
   };
 
