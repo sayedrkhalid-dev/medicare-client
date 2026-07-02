@@ -28,7 +28,6 @@ export default function DoctorDetailsPage({ params: paramsPromise }) {
   // Unwrap params for Next.js compliance
   const params = use(paramsPromise);
   const doctorId = params.id;
-  console.log(doctorId);
 
   const router = useRouter(); // 2. Initialize router
 
@@ -85,12 +84,57 @@ export default function DoctorDetailsPage({ params: paramsPromise }) {
     }
 
     /**
-     * Since doctor schedules contain weekly recurrence templates (e.g. dayOfWeek: "Monday"),
-     * your checkout validation layer matches a full structured ISO date 'YYYY-MM-DD'.
-     * For demonstration, we format to today's date context string or match a close window string.
+     * Doctor schedules are weekly recurrence templates (e.g. dayOfWeek:
+     * "Monday"), but the backend needs a concrete calendar date. This
+     * computes the *next upcoming date* that falls on the selected
+     * schedule's day-of-week -- e.g. if today is Wednesday and the doctor
+     * selected a "Monday" schedule, this resolves to next Monday's date,
+     * not today's.
+     *
+     * (Previously this just used today's date regardless of which day
+     * the schedule was for -- that mismatch between the requested date's
+     * actual weekday and the schedule's dayOfWeek is what caused every
+     * booking to fail server-side with "Selected slot is unavailable".)
      */
-    const today = new Date();
-    const formattedDateString = today.toISOString().split("T")[0]; // YYYY-MM-DD
+    const DAY_NAME_TO_INDEX = {
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
+    };
+
+    const getNextDateForDayOfWeek = (dayName) => {
+      const targetDayIndex = DAY_NAME_TO_INDEX[dayName];
+      const today = new Date();
+      const todayIndex = today.getDay();
+
+      // Days until the next occurrence of targetDayIndex. If today IS
+      // that day, book it for today (0 days ahead) rather than jumping
+      // a full week forward.
+      let daysUntilTarget = (targetDayIndex - todayIndex + 7) % 7;
+
+      const nextDate = new Date(today);
+      nextDate.setDate(today.getDate() + daysUntilTarget);
+
+      // Zero out the time portion so we only keep the calendar date.
+      nextDate.setHours(0, 0, 0, 0);
+
+      // Format as YYYY-MM-DD using LOCAL date parts (not toISOString,
+      // which converts to UTC and can shift the date by a day depending
+      // on the browser's timezone).
+      const year = nextDate.getFullYear();
+      const month = String(nextDate.getMonth() + 1).padStart(2, "0");
+      const day = String(nextDate.getDate()).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    };
+
+    const formattedDateString = getNextDateForDayOfWeek(
+      activeSchedule.dayOfWeek,
+    );
     const slotTimeWindow = activeSchedule.startTime; // HH:MM format from schedule template
 
     // 3. Route parameters cleanly down to the review terminal step
