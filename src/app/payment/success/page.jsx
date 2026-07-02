@@ -92,117 +92,120 @@ function CheckoutSuccessContent() {
   return (
     <>
       {/* Verification Loading State */}
-      {verificationState === "verifying" && (
-        <div className="space-y-4 py-6">
-          <div className="flex justify-center">
-            <FiLoader className="animate-spin text-teal-500" size={36} />
+      {verificationState === "verifying" ||
+        (verificationState === "pending" && (
+          <div className="space-y-4 py-6">
+            <div className="flex justify-center">
+              <FiLoader className="animate-spin text-teal-500" size={36} />
+            </div>
+            <div className="space-y-1.5">
+              <h1 className="text-base font-bold tracking-tight">
+                Confirming settlement context
+              </h1>
+              <p className="text-xxs text-slate-400 dark:text-slate-500 max-w-sm mx-auto leading-relaxed">
+                Syncing securely with clearing networks to register your session
+                allocation data. Do not close this terminal.
+              </p>
+            </div>
           </div>
-          <div className="space-y-1.5">
-            <h1 className="text-base font-bold tracking-tight">
-              Confirming settlement context
-            </h1>
-            <p className="text-xxs text-slate-400 dark:text-slate-500 max-w-sm mx-auto leading-relaxed">
-              Syncing securely with clearing networks to register your session
-              allocation data. Do not close this terminal.
-            </p>
-          </div>
-        </div>
-      )}
+        ))}
 
       {/* Verification Success State */}
-      {verificationState === "succeeded" && (
-        <>
-          <div className="space-y-3 py-2">
-            <div className="flex justify-center">
-              <div className="p-3 bg-teal-500/10 rounded-full border border-teal-500/20 text-teal-500 animate-bounce">
-                <FiCheckCircle size={32} />
+      {verificationState === "succeeded" ||
+        (verificationState === "success" && (
+          <>
+            <div className="space-y-3 py-2">
+              <div className="flex justify-center">
+                <div className="p-3 bg-teal-500/10 rounded-full border border-teal-500/20 text-teal-500 animate-bounce">
+                  <FiCheckCircle size={32} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                  Consultation Confirmed
+                </h1>
+                <p className="text-xxs text-slate-400 dark:text-slate-500">
+                  Your billing settlement was matched. Your session parameters
+                  are permanently saved.
+                </p>
               </div>
             </div>
-            <div className="space-y-1">
-              <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                Consultation Confirmed
-              </h1>
-              <p className="text-xxs text-slate-400 dark:text-slate-500">
-                Your billing settlement was matched. Your session parameters are
-                permanently saved.
-              </p>
-            </div>
-          </div>
 
-          {/* Display verification details */}
-          {appointmentDetails && (
-            <div className="p-4 rounded-xl border text-left text-xs bg-slate-50/40 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800/80 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                  <FiCreditCard size={12} /> Transaction matching ID
-                </span>
-                <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
-                  {appointmentDetails.transactionId ||
-                    sessionId.substring(0, 12) + "..."}
-                </span>
-              </div>
-              {appointmentDetails.amount && (
-                <div className="flex items-center justify-between border-t border-slate-200/40 dark:border-slate-800/40 pt-2">
+            {/* Display verification details */}
+            {appointmentDetails && (
+              <div className="p-4 rounded-xl border text-left text-xs bg-slate-50/40 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800/80 space-y-2.5">
+                <div className="flex items-center justify-between">
                   <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                    <FiActivity size={12} /> Settled amount
+                    <FiCreditCard size={12} /> Transaction matching ID
                   </span>
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    {appointmentDetails.amount}{" "}
-                    {appointmentDetails.currency?.toUpperCase() || "BDT"}
+                  <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                    {appointmentDetails.transactionId ||
+                      sessionId.substring(0, 12) + "..."}
                   </span>
                 </div>
-              )}
-            </div>
-          )}
+                {appointmentDetails.amount && (
+                  <div className="flex items-center justify-between border-t border-slate-200/40 dark:border-slate-800/40 pt-2">
+                    <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                      <FiActivity size={12} /> Settled amount
+                    </span>
+                    <span className="font-bold text-slate-900 dark:text-white">
+                      {appointmentDetails.amount}{" "}
+                      {appointmentDetails.currency?.toUpperCase() || "BDT"}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
 
-          <div className="pt-2">
-            <Link
-              href="/dashboard/admin/payments"
-              className="w-full py-2.5 text-xs font-semibold tracking-wide rounded-xl shadow-sm text-center bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              Access payment dashboard
-              <FiArrowRight size={13} />
-            </Link>
-          </div>
-        </>
-      )}
+            <div className="pt-2">
+              <Link
+                href="/dashboard/admin/payments"
+                className="w-full py-2.5 text-xs font-semibold tracking-wide rounded-xl shadow-sm text-center bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                Access payment dashboard
+                <FiArrowRight size={13} />
+              </Link>
+            </div>
+          </>
+        ))}
 
       {/* Verification Failure State */}
-      {verificationState === "failed" && (
-        <>
-          <div className="space-y-3 py-2">
-            <div className="flex justify-center">
-              <div className="p-3 bg-rose-500/10 rounded-full border border-rose-500/20 text-rose-500">
-                <FiAlertTriangle size={32} />
+      {verificationState === "failed" ||
+        (verificationState === "cancelled" && (
+          <>
+            <div className="space-y-3 py-2">
+              <div className="flex justify-center">
+                <div className="p-3 bg-rose-500/10 rounded-full border border-rose-500/20 text-rose-500">
+                  <FiAlertTriangle size={32} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h1 className="text-lg font-extrabold tracking-tight text-rose-500">
+                  Verification Exception
+                </h1>
+                <p className="text-xxs text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
+                  {errorMessage ||
+                    "The security loop could not confirm clearance records correctly."}
+                </p>
               </div>
             </div>
-            <div className="space-y-1">
-              <h1 className="text-lg font-extrabold tracking-tight text-rose-500">
-                Verification Exception
-              </h1>
-              <p className="text-xxs text-slate-400 dark:text-slate-500 max-w-xs mx-auto">
-                {errorMessage ||
-                  "The security loop could not confirm clearance records correctly."}
-              </p>
-            </div>
-          </div>
 
-          <div className="pt-2 flex flex-col sm:flex-row gap-2">
-            <Link
-              href="/doctors"
-              className="flex-1 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-center cursor-pointer"
-            >
-              Return to directory
-            </Link>
-            <Link
-              href="/dashboard/admin/payments"
-              className="flex-1 py-2 text-xs font-semibold rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 transition-all text-center cursor-pointer"
-            >
-              View dashboard history
-            </Link>
-          </div>
-        </>
-      )}
+            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+              <Link
+                href="/doctors"
+                className="flex-1 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all text-center cursor-pointer"
+              >
+                Return to directory
+              </Link>
+              <Link
+                href="/dashboard/admin/payments"
+                className="flex-1 py-2 text-xs font-semibold rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 transition-all text-center cursor-pointer"
+              >
+                View dashboard history
+              </Link>
+            </div>
+          </>
+        ))}
     </>
   );
 }
