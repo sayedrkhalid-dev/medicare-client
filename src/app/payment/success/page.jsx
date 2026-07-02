@@ -166,10 +166,10 @@ function CheckoutSuccessContent() {
 
           <div className="pt-2">
             <Link
-              href="/dashboard/admin/payments"
+              href="dashboard/patient/my-appointments"
               className="w-full py-2.5 text-xs font-semibold tracking-wide rounded-xl shadow-sm text-center bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              Access payment dashboard
+              Access appoinment dashboard
               <FiArrowRight size={13} />
             </Link>
           </div>
@@ -205,7 +205,7 @@ function CheckoutSuccessContent() {
               Return to directory
             </Link>
             <Link
-              href="/dashboard/admin/payments"
+              href="/dashboard/patient"
               className="flex-1 py-2 text-xs font-semibold rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 transition-all text-center cursor-pointer"
             >
               View dashboard history
