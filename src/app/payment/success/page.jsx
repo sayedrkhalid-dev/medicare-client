@@ -195,7 +195,7 @@ function CheckoutSuccessContent() {
               Return to directory
             </Link>
             <Link
-              href="/dashboard/payments"
+              href="/dashboard/admin/payments"
               className="flex-1 py-2 text-xs font-semibold rounded-xl bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 transition-all text-center cursor-pointer"
             >
               View dashboard history
