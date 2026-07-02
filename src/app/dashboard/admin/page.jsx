@@ -39,6 +39,8 @@ export default function AdminDashboardHome() {
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [pendingApplications, setPendingApplications] = useState([]);
 
+  // Tracks which application row currently has an approve/reject action
+  // in flight, so we can disable buttons + show a spinner on that row only.
   const [actionId, setActionId] = useState(null);
 
   const loadDashboard = async () => {
@@ -61,12 +63,19 @@ export default function AdminDashboardHome() {
       ]);
 
       const applicationsList = toList(applicationsRes);
-      const paymentsList = toList(paymentsRes);
 
       setUserCount(toTotal(usersRes, toList(usersRes)));
       setDoctorCount(toTotal(doctorsRes, toList(doctorsRes)));
       setAppointmentCount(toTotal(appointmentsRes, toList(appointmentsRes)));
       setPendingApplications(applicationsList);
+
+      // NOTE: paymentsRes is fetched (kept, since getPayments() is an
+      // admin-only call and we don't want to silently drop that request
+      // without reviewing whether it's needed elsewhere), but there's no
+      // payments/revenue widget wired up yet. If you want a "Total
+      // Revenue" or "Total Payments" card added to the widgets grid
+      // below, let me know and I'll wire it up using toList(paymentsRes)
+      // the same way the other counts are computed.
     } catch (err) {
       console.error("Failed to load admin dashboard:", err);
       setError(err.message || "Failed to load dashboard data.");
@@ -81,25 +90,32 @@ export default function AdminDashboardHome() {
 
   const handleApprove = async (applicationId) => {
     try {
+      setActionId(applicationId);
       await approveApplication(applicationId);
       setPendingApplications((prev) =>
         prev.filter((app) => (app._id || app.id) !== applicationId),
       );
     } catch (err) {
       console.error("Failed to approve application:", err);
+    } finally {
+      setActionId(null);
     }
   };
 
   const handleReject = async (applicationId) => {
     const reason = window.prompt("Reason for rejection:");
     if (!reason) return;
+
     try {
+      setActionId(applicationId);
       await rejectApplication(applicationId, reason);
       setPendingApplications((prev) =>
         prev.filter((app) => (app._id || app.id) !== applicationId),
       );
     } catch (err) {
       console.error("Failed to reject application:", err);
+    } finally {
+      setActionId(null);
     }
   };
 
@@ -308,11 +324,11 @@ export default function AdminDashboardHome() {
 
                               {/* Show Reject unless already rejected —
                                   covers Pending -> Rejected and Approved -> Rejected.
-                                  Both paths go through the same reason modal, since
+                                  Both paths go through the same reason prompt, since
                                   reversing an approval still deserves an explanation. */}
                               {!isRejected && (
                                 <button
-                                  onClick={() => openRejectModal(app)}
+                                  onClick={() => handleReject(app._id)}
                                   disabled={actionId !== null}
                                   className="p-2 border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-950/40 dark:bg-rose-950/20 dark:text-rose-400 rounded-xl transition-colors"
                                   title={
