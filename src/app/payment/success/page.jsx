@@ -157,7 +157,7 @@ function CheckoutSuccessContent() {
 
           <div className="pt-2">
             <Link
-              href="/dashboard/payments"
+              href="/dashboard/admin/payments"
               className="w-full py-2.5 text-xs font-semibold tracking-wide rounded-xl shadow-sm text-center bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-950 hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               Access payment dashboard
