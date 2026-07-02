@@ -1,6 +1,6 @@
 # MediCare — Client
 
-MediCare is a full-stack doctor appointment and healthcare consultation platform. This repository contains the **frontend** — a Next.js web application that lets patients find and book doctors, lets doctors manage their schedules and patients, and gives admins full control over the platform.
+MediCare is a full-stack platform for doctor appointments and healthcare consultations. This repository contains the **frontend** — a Next.js web application that lets patients find and book doctors, lets doctors manage their schedules and patients, and gives admins full control over the platform.
 
 **Live App:** [medicare-client-ruddy.vercel.app](https://medicare-client-ruddy.vercel.app/)
 **Backend API:** [medicare-server-isbj.onrender.com](https://medicare-server-isbj.onrender.com/)
