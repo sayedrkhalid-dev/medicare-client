@@ -52,7 +52,7 @@ function CheckoutSuccessContent() {
         if (!isMounted) return;
 
         // ✅ FIXED: Deep extraction parsing (response.data.data.status) to unpack Express JSON structure
-        if (response?.success && response?.data?.status === "success") {
+        if (response?.success && response?.data?.status === "succeded") {
           // ✅ FIXED: Target the inner payment document correctly
           setAppointmentDetails(response.data.payment);
           setVerificationState("succeeded");
@@ -123,8 +123,8 @@ function CheckoutSuccessContent() {
                 Consultation Confirmed
               </h1>
               <p className="text-xxs text-slate-400 dark:text-slate-500">
-                Your billing settlement was matched. Your session parameters
-                are permanently saved.
+                Your billing settlement was matched. Your session parameters are
+                permanently saved.
               </p>
             </div>
           </div>
