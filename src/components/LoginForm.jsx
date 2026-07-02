@@ -2,11 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FiEye, FiEyeOff, FiLock, FiMail } from "react-icons/fi";
-import { authClient } from "@/lib/auth-client";
+import { login } from "@/services/auth/auth.service";
+import { loginWithGoogle } from "@/services/auth/auth.service";
 
 const LoginForm = () => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
@@ -31,44 +35,34 @@ const LoginForm = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleForgotPassword = async () => {};
-
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setSubmitError("");
 
-    if (validateForm()) {
-      // authClient handles the API request lifecycle seamlessly
-      const { data, error } = await authClient.signIn.email({
-        email: loginData.email,
-        password: loginData.password,
-        callbackURL: "/",
-      });
-
-      if (error) {
-        // better-auth returns structured error objects (e.g., error.message or error.status)
-        setSubmitError(
-          error.message || "An authentication schema error occurred.",
-        );
-        console.error("Registration error detail:", error);
-        return;
-      }
-
-      // Success! The session cookie is managed automatically by the client helper
-      console.log("Submitting premium login secure pipeline:", data);
-    } else {
+    if (!validateForm()) {
       setSubmitError(
         "Please correct the errors indicated below before resubmitting.",
       );
+      return;
     }
-  };
 
-  const handleGoogleLogin = async () => {
-    const data = await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "https://medicare-client-ruddy.vercel.app",
-    });
-    console.log(data);
+    setSubmitting(true);
+    try {
+      const data = await login({
+        email: loginData.email,
+        password: loginData.password,
+      });
+
+      console.log("Submitting premium login secure pipeline:", data);
+
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      setSubmitError(err.message || "An authentication schema error occurred.");
+      console.error("Login error detail:", err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleLoginChange = (e) => {
@@ -79,6 +73,12 @@ const LoginForm = () => {
 
   return (
     <form onSubmit={handleLoginSubmit} className="space-y-4">
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-900/50 text-red-700 dark:text-red-400 text-xs">
+          <span>{submitError}</span>
+        </div>
+      )}
+
       <div className="space-y-1.5">
         <label
           className="text-xs font-medium uppercase tracking-wider text-slate-700 dark:text-slate-300"
@@ -164,9 +164,10 @@ const LoginForm = () => {
 
       <button
         type="submit"
-        className="w-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 py-3 rounded-lg font-medium text-sm hover:bg-slate-800 dark:hover:bg-slate-200 transition-all active:scale-[0.98] shadow-lg shadow-slate-950/10 dark:shadow-none"
+        disabled={submitting}
+        className="w-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 py-3 rounded-lg font-medium text-sm hover:bg-slate-800 dark:hover:bg-slate-200 transition-all active:scale-[0.98] shadow-lg shadow-slate-950/10 dark:shadow-none disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Sign In
+        {submitting ? "Signing in..." : "Sign In"}
       </button>
 
       <div className="relative my-4 text-center">
@@ -181,7 +182,7 @@ const LoginForm = () => {
       <button
         type="button"
         className="w-full flex items-center justify-center gap-3 border border-slate-300 dark:border-slate-700 py-2.5 rounded-lg font-medium text-sm text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all cursor-pointer"
-        onClick={handleGoogleLogin}
+        onClick={loginWithGoogle}
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path

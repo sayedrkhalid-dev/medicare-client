@@ -3,6 +3,8 @@
 import React, { useState, useEffect, use } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // 1. Import Next router hook
+import { toast } from "react-hot-toast";
 import {
   FiArrowLeft,
   FiCheckCircle,
@@ -26,6 +28,9 @@ export default function DoctorDetailsPage({ params: paramsPromise }) {
   // Unwrap params for Next.js compliance
   const params = use(paramsPromise);
   const doctorId = params.id;
+  console.log(doctorId);
+
+  const router = useRouter(); // 2. Initialize router
 
   // UI State
   const [doctor, setDoctor] = useState(null);
@@ -70,10 +75,28 @@ export default function DoctorDetailsPage({ params: paramsPromise }) {
 
   const handleBookingSubmit = (e) => {
     e.preventDefault();
-    console.log("Appointment details submitted:", {
-      doctorId: doctor._id,
-      scheduleId: selectedScheduleId,
-    });
+
+    // Find matching schedule metadata block
+    const activeSchedule = schedules.find((s) => s._id === selectedScheduleId);
+
+    if (!activeSchedule) {
+      toast.error("Please explicitly select a weekly operating slot block.");
+      return;
+    }
+
+    /**
+     * Since doctor schedules contain weekly recurrence templates (e.g. dayOfWeek: "Monday"),
+     * your checkout validation layer matches a full structured ISO date 'YYYY-MM-DD'.
+     * For demonstration, we format to today's date context string or match a close window string.
+     */
+    const today = new Date();
+    const formattedDateString = today.toISOString().split("T")[0]; // YYYY-MM-DD
+    const slotTimeWindow = activeSchedule.startTime; // HH:MM format from schedule template
+
+    // 3. Route parameters cleanly down to the review terminal step
+    router.push(
+      `/payment/${doctor._id}?date=${formattedDateString}&time=${slotTimeWindow}`,
+    );
   };
 
   if (loading) {
@@ -276,7 +299,7 @@ export default function DoctorDetailsPage({ params: paramsPromise }) {
               <FiDollarSign size={16} className="text-slate-400 self-center" />
               <span>{doctor.consultationFee}</span>
               <span className="text-xxs text-slate-400 dark:text-slate-500 font-medium ml-0.5">
-                USD
+                BDT
               </span>
             </div>
           </div>

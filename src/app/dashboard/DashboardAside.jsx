@@ -36,11 +36,6 @@ const navigationConfig = {
         icon: RxEnvelopeOpen,
       },
       {
-        label: "Doctor Management",
-        href: "/dashboard/admin/doctors",
-        icon: RxReader,
-      },
-      {
         label: "Appointments",
         href: "/dashboard/admin/appointments",
         icon: RxCalendar,
@@ -77,16 +72,10 @@ const navigationConfig = {
         icon: RxCardStack,
       },
       {
-        label: "My Appointments",
+        label: "Appointments",
         href: "/dashboard/doctor/appointments",
         icon: RxCalendar,
       },
-      {
-        label: "Prescriptions",
-        href: "/dashboard/doctor/prescriptions",
-        icon: RxFileText,
-      },
-      { label: "My Reviews", href: "/dashboard/doctor/reviews", icon: RxStar },
     ],
     administrative: [
       { label: "Settings", href: "/dashboard/doctor/settings", icon: RxGear },
@@ -114,11 +103,6 @@ const navigationConfig = {
         label: "Payment History",
         href: "/dashboard/patient/payment-history",
         icon: RxReader,
-      },
-      {
-        label: "My Reviews",
-        href: "/dashboard/patient/my-reviews",
-        icon: RxStar,
       },
     ],
     administrative: [

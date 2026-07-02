@@ -24,26 +24,19 @@ export default function AppointmentsManagementPage() {
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [actionId, setActionId] = useState(null);
-
   const [currentTab, setCurrentTab] = useState("Scheduled");
 
-  // Search-on-click, same pattern as DoctorApplicationsPage: searchDraft is
-  // what the input shows; searchTerm is what's actually sent to the server.
   const [searchDraft, setSearchDraft] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Pagination is now server-side (the API returns data + meta), matching
-  // UserManagementPage's pattern, instead of client-side slicing.
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 5;
 
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
 
-  // Reset to page 1 whenever a filter actually changes (status tab or an
-  // applied search), not on every keystroke of the draft.
+  // Reset page navigation window back to index 1 upon modifying structural search vectors
   useEffect(() => {
     setCurrentPage(1);
   }, [currentTab, searchTerm]);
@@ -52,15 +45,20 @@ export default function AppointmentsManagementPage() {
     const fetchAppointments = async () => {
       setIsLoading(true);
       try {
-        const data = await getAllAppointments({
+        const response = await getAllAppointments({
           page: currentPage,
           limit: itemsPerPage,
           status: currentTab,
           search: searchTerm,
         });
-        setAppointments(data.data || []);
-        setTotalPages(data.meta?.totalPages || 1);
-        setTotalItems(data.meta?.total || 0);
+
+        // Handle variations of API formatting shapes (direct object wrapper vs nested response wrappers)
+        const appointmentsData = response?.data || response || [];
+        const metaData = response?.meta || {};
+
+        setAppointments(appointmentsData);
+        setTotalPages(metaData.totalPages || 1);
+        setTotalItems(metaData.total || appointmentsData.length || 0);
       } catch (error) {
         console.error("Failed to load appointments:", error);
         toast.error(
@@ -83,12 +81,14 @@ export default function AppointmentsManagementPage() {
     setActionId(id);
     try {
       await cancelAppointment(id);
+
+      // Update local array status using mapped string properties matching structural layout view parameters
       setAppointments((prev) =>
         prev.map((apt) =>
-          apt._id === id ? { ...apt, status: "Cancelled" } : apt,
+          apt._id === id ? { ...apt, appointmentStatus: "cancelled" } : apt,
         ),
       );
-      toast.success("Appointment cancelled.");
+      toast.success("Appointment cancelled successfully.");
     } catch (error) {
       console.error(`Cancel error on appointment: ${id}`, error);
       toast.error(
@@ -99,25 +99,10 @@ export default function AppointmentsManagementPage() {
     }
   };
 
-  const getTabColorConfig = (tab) => {
-    switch (tab) {
-      case "Scheduled":
-        return "bg-blue-500";
-      case "Completed":
-        return "bg-emerald-500";
-      case "Cancelled":
-        return "bg-rose-500";
-      default:
-        return "bg-slate-400";
-    }
-  };
-
   return (
     <div className="space-y-6 animate-fadeIn">
-      {/* Advanced Control Box Pipeline */}
+      {/* Control Box Pipeline */}
       <div className="space-y-4 bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 p-5 rounded-[16px] shadow-sm">
-        {/* Search Input Vector — search-on-click via the button, same as
-            DoctorApplicationsPage */}
         <div className="relative flex items-stretch">
           <RxMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
           <input
@@ -139,7 +124,7 @@ export default function AppointmentsManagementPage() {
           </button>
         </div>
 
-        {/* Tab Segmentation Element Grid */}
+        {/* Tab Selection Segments */}
         <div className="flex border-b border-slate-100 dark:border-slate-900/60 pt-2 select-none overflow-x-auto">
           {["Scheduled", "Completed", "Cancelled"].map((tab) => (
             <button
@@ -151,9 +136,7 @@ export default function AppointmentsManagementPage() {
                   : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               }`}
             >
-              <div className="flex items-center gap-2">
-                <span>{tab} Bookings</span>
-              </div>
+              <span>{tab} Bookings</span>
               {currentTab === tab && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1E3A8A] dark:bg-[#3cd1c2] animate-slideIn" />
               )}
@@ -162,7 +145,7 @@ export default function AppointmentsManagementPage() {
         </div>
       </div>
 
-      {/* Roster Layout Sheet Container */}
+      {/* Roster Data Layout Sheet Container */}
       <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -189,86 +172,99 @@ export default function AppointmentsManagementPage() {
                   </td>
                 </tr>
               ) : appointments.length > 0 ? (
-                appointments.map((apt) => (
-                  <tr
-                    key={apt._id}
-                    className="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors group"
-                  >
-                    <td className="py-4 px-6 font-mono font-bold text-[12px]">
-                      <Link
-                        href={`/dashboard/admin/appointments/${apt._id}`}
-                        className="text-slate-500 hover:text-[#1E3A8A] dark:hover:text-[#3cd1c2] underline underline-offset-2 transition-colors"
-                      >
-                        {apt._id}
-                      </Link>
-                    </td>
-                    <td className="py-4 px-6 font-bold text-slate-900 dark:text-white">
-                      {apt.patient?.name || "Unknown Patient"}
-                    </td>
-                    <td className="py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
-                      {apt.doctor?.name || "Unknown Doctor"}
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-bold tracking-tight bg-teal-50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-400">
-                        {apt.doctor?.specialization ||
-                          apt.specialty ||
-                          "General"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex flex-col text-[12px] font-medium text-slate-500 dark:text-slate-400">
-                        <span className="inline-flex items-center gap-1 font-mono font-bold text-slate-700 dark:text-slate-300">
-                          <RxCalendar className="w-3.5 h-3.5 text-slate-400" />{" "}
-                          {apt.date
-                            ? new Date(apt.date).toLocaleDateString("en-US", {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              })
-                            : "—"}
-                        </span>
-                        <span className="inline-flex items-center gap-1 font-mono mt-0.5">
-                          <RxClock className="w-3.5 h-3.5 text-slate-400" />{" "}
-                          {apt.time || "—"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                appointments.map((apt) => {
+                  // Normalize variable paths based on structural schema models mapping layout rules
+                  const statusNormalized = (
+                    apt.appointmentStatus || ""
+                  ).toLowerCase();
+                  const isScheduled =
+                    statusNormalized === "pending" ||
+                    statusNormalized === "confirmed";
+                  const isCompleted = statusNormalized === "completed";
+
+                  return (
+                    <tr
+                      key={apt._id}
+                      className="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors group"
+                    >
+                      <td className="py-4 px-6 font-mono font-bold text-[12px]">
                         <Link
                           href={`/dashboard/admin/appointments/${apt._id}`}
-                          className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-white dark:bg-transparent transition-colors"
-                          title="Inspect File Overview"
+                          className="text-slate-500 hover:text-[#1E3A8A] dark:hover:text-[#3cd1c2] underline underline-offset-2 transition-colors"
                         >
-                          <RxEyeOpen className="w-4 h-4" />
+                          {apt._id}
                         </Link>
-
-                        {apt.status === "Scheduled" ? (
-                          <button
-                            onClick={() => handleCancelAppointment(apt._id)}
-                            disabled={actionId !== null}
-                            className="p-2 border border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-950/40 dark:bg-rose-950/20 dark:text-rose-400 rounded-[10px] transition-colors"
-                            title="Revoke Booking Window"
+                      </td>
+                      <td className="py-4 px-6 font-bold text-slate-900 dark:text-white">
+                        {apt.patientName ||
+                          apt.patient?.name ||
+                          "Unknown Patient"}
+                      </td>
+                      <td className="py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                        {apt.doctorName || apt.doctor?.name || "Unknown Doctor"}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className="px-2.5 py-1 rounded-md text-[11px] font-bold tracking-tight bg-teal-50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-400">
+                          {apt.doctorSpecialization || "General"}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex flex-col text-[12px] font-medium text-slate-500 dark:text-slate-400">
+                          <span className="inline-flex items-center gap-1 font-mono font-bold text-slate-700 dark:text-slate-300">
+                            <RxCalendar className="w-3.5 h-3.5 text-slate-400" />{" "}
+                            {apt.appointmentDate
+                              ? new Date(
+                                  apt.appointmentDate,
+                                ).toLocaleDateString("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })
+                              : "—"}
+                          </span>
+                          <span className="inline-flex items-center gap-1 font-mono mt-0.5">
+                            <RxClock className="w-3.5 h-3.5 text-slate-400" />{" "}
+                            {apt.appointmentTime || "—"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/dashboard/admin/appointments/${apt._id}`}
+                            className="p-2 border border-[#E6F0FA] dark:border-slate-800 rounded-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-white dark:bg-transparent transition-colors"
+                            title="Inspect File Overview"
                           >
-                            {actionId === apt._id ? (
-                              <div className="w-4 h-4 border-2 border-t-transparent border-current rounded-full animate-spin" />
-                            ) : (
-                              <RxCross2 className="w-4 h-4" />
-                            )}
-                          </button>
-                        ) : apt.status === "Completed" ? (
-                          <span className="text-emerald-500 inline-flex items-center gap-1 text-[12px] font-bold select-none px-2 py-1">
-                            <RxCheckCircled className="w-4 h-4" /> Audited
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[12px] font-semibold italic select-none px-2 py-1">
-                            Aborted
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                            <RxEyeOpen className="w-4 h-4" />
+                          </Link>
+
+                          {isScheduled ? (
+                            <button
+                              onClick={() => handleCancelAppointment(apt._id)}
+                              disabled={actionId !== null}
+                              className="p-2 border border-rose-100 bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-950/40 dark:bg-rose-950/20 dark:text-rose-400 rounded-[10px] transition-colors"
+                              title="Revoke Booking Window"
+                            >
+                              {actionId === apt._id ? (
+                                <div className="w-4 h-4 border-2 border-t-transparent border-current rounded-full animate-spin" />
+                              ) : (
+                                <RxCross2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          ) : isCompleted ? (
+                            <span className="text-emerald-500 inline-flex items-center gap-1 text-[12px] font-bold select-none px-2 py-1">
+                              <RxCheckCircled className="w-4 h-4" /> Audited
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[12px] font-semibold italic select-none px-2 py-1">
+                              Aborted
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
@@ -284,7 +280,7 @@ export default function AppointmentsManagementPage() {
           </table>
         </div>
 
-        {/* Dynamic Structural Pagination Engine */}
+        {/* Structural Pagination Engine */}
         {!isLoading && totalItems > 0 && (
           <div className="bg-slate-50/40 dark:bg-slate-900/20 border-t border-slate-100 dark:border-slate-900 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
             <span className="text-[12px] font-medium text-slate-400">
@@ -294,7 +290,7 @@ export default function AppointmentsManagementPage() {
               </span>{" "}
               to{" "}
               <span className="font-bold text-slate-700 dark:text-slate-300">
-                {Math.min(endIndex, totalItems)}
+                {Math.min(startIndex + itemsPerPage, totalItems)}
               </span>{" "}
               of{" "}
               <span className="font-bold text-slate-700 dark:text-slate-300">

@@ -26,15 +26,15 @@ export default function AdminAppointmentDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
 
-  // Admin notes are local-only for now — there's no service function to
-  // persist them yet, so this resets on reload until that endpoint exists.
+  // Admin notes remain local-only for now
   const [adminNotes, setAdminNotes] = useState("");
 
   useEffect(() => {
     const fetchAppointment = async () => {
       setIsLoading(true);
       try {
-        const data = await getAppointmentById(id);
+        const response = await getAppointmentById(id);
+        const data = response?.data || response;
         setAppointment(data);
       } catch (error) {
         console.error("Failed to load appointment:", error);
@@ -51,8 +51,11 @@ export default function AdminAppointmentDetailPage() {
     setIsCancelling(true);
     try {
       await cancelAppointment(appointment._id);
-      setAppointment((prev) => ({ ...prev, status: "Cancelled" }));
-      toast.success("Appointment cancelled.");
+      setAppointment((prev) => ({
+        ...prev,
+        appointmentStatus: "cancelled",
+      }));
+      toast.success("Appointment cancelled successfully.");
     } catch (error) {
       console.error("Cancel error:", error);
       toast.error(
@@ -90,7 +93,28 @@ export default function AdminAppointmentDetailPage() {
     );
   }
 
-  const status = appointment.status || "Scheduled";
+  // Normalize backend lower-case schema status values into UI labels
+  const rawStatus = (appointment.appointmentStatus || "").toLowerCase();
+  const isScheduled = rawStatus === "pending" || rawStatus === "confirmed";
+  const isCompleted = rawStatus === "completed";
+  const isCancelled = rawStatus === "cancelled";
+
+  let statusLabel = "Scheduled";
+  if (isCompleted) statusLabel = "Completed";
+  if (isCancelled) statusLabel = "Cancelled";
+
+  // Helper values for dynamic avatar representations
+  const pName =
+    appointment.patientName || appointment.patient?.name || "Unknown Patient";
+  const dName =
+    appointment.doctorName || appointment.doctor?.name || "Unknown Doctor";
+  const pInitial = pName.charAt(0).toUpperCase();
+  const dInitial = dName
+    .replace(/^Dr\.\s*/i, "")
+    .charAt(0)
+    .toUpperCase();
+
+  console.log(appointment);
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -106,18 +130,18 @@ export default function AdminAppointmentDetailPage() {
 
         <span
           className={`px-3 py-1 rounded-md text-[11px] font-black tracking-wider uppercase border ${
-            status === "Scheduled"
-              ? "bg-blue-50 text-blue-600 border-blue-200"
-              : status === "Completed"
-                ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                : "bg-rose-50 text-rose-600 border-rose-200"
+            isScheduled
+              ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-900/50"
+              : isCompleted
+                ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/50"
+                : "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-950/20 dark:text-rose-400 dark:border-rose-900/50"
           }`}
         >
-          Encounter {status}
+          Encounter {statusLabel}
         </span>
       </div>
 
-      {/* Main Structural Breakdown Layout Grid */}
+      {/* Main Structural Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Core Case File Content Body Column */}
         <div className="lg:col-span-2 space-y-6">
@@ -133,32 +157,56 @@ export default function AdminAppointmentDetailPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[13px] font-medium pt-2">
-              <div className="p-4 bg-slate-50/50 dark:bg-slate-900/40 border border-[#E6F0FA] dark:border-slate-900 rounded-[12px] flex items-start gap-3">
-                <RxPerson className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">
+              {/* Patient Profile Box */}
+              <div className="p-4 bg-slate-50/50 dark:bg-slate-900/40 border border-[#E6F0FA] dark:border-slate-900 rounded-[12px] flex items-center gap-4">
+                {appointment.patientImage || appointment.patient?.image ? (
+                  <img
+                    src={appointment.patientImage || appointment.patient?.image}
+                    alt={pName}
+                    className="w-12 h-12 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-[15px] shrink-0 border border-slate-300/30">
+                    {pInitial || <RxPerson className="w-5 h-5" />}
+                  </div>
+                )}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
                     Patient Entity
                   </span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                    {appointment.patient?.name || "Unknown Patient"}
+                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                    {pName}
                   </span>
-                  <span className="text-[11px] font-mono text-slate-400 mt-0.5">
-                    {appointment.patient?._id || "—"}
+                  <span className="text-[11px] font-mono text-slate-400 mt-0.5 truncate">
+                    ID: {appointment.patientId || "—"}
                   </span>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-50/50 dark:bg-slate-900/40 border border-[#E6F0FA] dark:border-slate-900 rounded-[12px] flex items-start gap-3">
-                <RxPerson className="w-5 h-5 text-teal-600 shrink-0 mt-0.5" />
-                <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">
+              {/* Doctor Profile Box */}
+              <div className="p-4 bg-slate-50/50 dark:bg-slate-900/40 border border-[#E6F0FA] dark:border-slate-900 rounded-[12px] flex items-center gap-4">
+                {appointment.doctorImage || appointment.doctor?.image ? (
+                  <img
+                    src={
+                      appointment.doctorImage || appointment.doctor?.user?.image
+                    }
+                    alt={dName}
+                    className="w-12 h-12 rounded-full object-cover border border-teal-200 dark:border-teal-900/50 shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-[15px] shrink-0 border border-teal-200/50">
+                    {dInitial || <RxPerson className="w-5 h-5" />}
+                  </div>
+                )}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
                     Assigned Medical Doctor
                   </span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5">
-                    {appointment.doctor?.name || "Unknown Doctor"}
+                  <span className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                    {dName}
                   </span>
-                  <span className="text-[11px] text-teal-600 font-semibold mt-0.5">
-                    {appointment.doctor?.specialization || "—"}
+                  <span className="text-[11px] text-teal-600 dark:text-teal-400 font-semibold mt-0.5 truncate">
+                    {appointment.doctorSpecialization || "—"}
                   </span>
                 </div>
               </div>
@@ -184,18 +232,18 @@ export default function AdminAppointmentDetailPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-50 dark:border-slate-900/60 pt-4">
                 <div>
                   <span className="text-slate-400 block text-[11px] font-bold uppercase">
-                    Consultation Type
+                    Financial Context
                   </span>
                   <span className="text-slate-800 dark:text-slate-200 font-bold block mt-0.5">
-                    {appointment.consultationType || "—"}
+                    Fee: ${appointment.consultationFee || "0"}
                   </span>
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[11px] font-bold uppercase">
-                    Reason for Visit
+                    Payment Gateway Status
                   </span>
-                  <span className="text-slate-800 dark:text-slate-200 font-bold block mt-0.5">
-                    {appointment.reason || "—"}
+                  <span className="text-emerald-600 font-bold block mt-0.5 uppercase tracking-wide text-[12px]">
+                    {appointment.paymentStatus || "unpaid"}
                   </span>
                 </div>
               </div>
@@ -216,32 +264,33 @@ export default function AdminAppointmentDetailPage() {
                   <RxCalendar className="w-4 h-4" /> Date
                 </span>
                 <span className="text-slate-700 dark:text-slate-200 font-mono font-bold">
-                  {appointment.date
-                    ? new Date(appointment.date).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })
+                  {appointment.appointmentDate
+                    ? new Date(appointment.appointmentDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )
                     : "—"}
                 </span>
               </div>
               <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-900 pb-2.5">
                 <span className="text-slate-400 flex items-center gap-1.5">
-                  <RxClock className="w-4 h-4" /> Time
+                  <RxClock className="w-4 h-4" /> Time Slot
                 </span>
                 <span className="text-slate-700 dark:text-slate-200 font-mono font-bold">
-                  {appointment.time || "—"}
+                  {appointment.appointmentTime || "—"}
                 </span>
               </div>
             </div>
 
-            {status === "Scheduled" && (
+            {isScheduled && (
               <div className="pt-2 space-y-2">
-                {/* "Mark Completed" has no backend endpoint yet (confirmed),
-                    so it's disabled rather than silently faking success. */}
                 <button
                   disabled
-                  title="Not available yet — this action isn't supported by the backend yet."
+                  title="Action requires additional backend workflow extension endpoints."
                   className="w-full py-2 bg-emerald-600/40 text-white font-bold text-[13px] rounded-[10px] flex items-center justify-center gap-1.5 cursor-not-allowed"
                 >
                   <RxCheckCircled className="w-4 h-4" /> Resolve Encounter
@@ -250,7 +299,7 @@ export default function AdminAppointmentDetailPage() {
                 <button
                   onClick={handleCancel}
                   disabled={isCancelling}
-                  className="w-full py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50 dark:bg-rose-950/20 dark:text-rose-400 font-bold text-[13px] rounded-[10px] transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50 dark:bg-rose-950/20 dark:text-rose-400 font-bold text-[13px] rounded-[10px] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {isCancelling ? (
                     <div className="w-4 h-4 border-2 border-t-transparent border-current rounded-full animate-spin" />
@@ -263,8 +312,7 @@ export default function AdminAppointmentDetailPage() {
             )}
           </div>
 
-          {/* Admin Override Notes Box — local-only until a persistence
-              endpoint exists; doesn't survive a page reload. */}
+          {/* Admin Override Notes Box */}
           <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6 shadow-sm space-y-3">
             <h3 className="text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-1.5">
               <RxPencil1 className="w-4 h-4 text-slate-400" /> Internal Desk

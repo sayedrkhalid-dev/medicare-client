@@ -17,6 +17,7 @@ import {
   approveApplication,
   rejectApplication,
 } from "@/services/doctor-applications/doctorApplication.service";
+import Link from "next/link";
 
 export default function DoctorApplicationsPage() {
   const [applications, setApplications] = useState([]);
@@ -342,16 +343,15 @@ export default function DoctorApplicationsPage() {
                     <td className="py-4 px-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* Clean Inspect Document Button */}
-                        <button
-                          onClick={() =>
-                            setPreviewImage(app.bmdcCertificateUrl)
-                          }
-                          className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-400 hover:text-[#00B4D8] dark:hover:text-[#CAF0F8] hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-                          title="Inspect Documents"
-                          disabled={actionId !== null}
-                        >
-                          <RxEyeOpen className="w-4 h-4" />
-                        </button>
+                        <Link href={app._id}>
+                          <button
+                            className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-400 hover:text-[#00B4D8] dark:hover:text-[#CAF0F8] hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+                            title="Inspect Documents"
+                            disabled={actionId !== null}
+                          >
+                            <RxEyeOpen className="w-4 h-4" />
+                          </button>
+                        </Link>
 
                         {(() => {
                           const status = (

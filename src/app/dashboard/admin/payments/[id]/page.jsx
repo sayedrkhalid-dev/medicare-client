@@ -1,199 +1,279 @@
 "use client";
 
-import React from "react";
-import { useParams, useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 import {
-  RxArrowLeft,
-  RxCalendar,
-  RxCardStack,
-  RxFileText,
-  RxActivityLog,
-} from "react-icons/rx";
-import { LuLock } from "react-icons/lu";
+  FiShield,
+  FiSliders,
+  FiCheckCircle,
+  FiClock,
+  FiXCircle,
+  FiExternalLink,
+  FiChevronLeft,
+  FiChevronRight,
+  FiLoader,
+  FiDollarSign,
+  FiUser,
+} from "react-icons/fi";
 
-// Mock financial archive mapping out extensive payload objects returned by Stripe APIs
-const stripeTransactionsDatabase = {
-  ch_3MxsKSFkXvKuK6MM1N3: {
-    customerName: "Eleanor Vance",
-    email: "e.vance@gmail.com",
-    amount: 120.0,
-    applicationFee: 12.0,
-    stripeFee: 3.78,
-    netPayout: 104.22,
-    currency: "USD",
-    date: "2026-06-25 14:12:08",
-    status: "Succeeded",
-    payoutStatus: "Transferred",
-    paymentMethod: "Visa ending in 4242",
-    fundingType: "Credit",
-    riskEvaluation: "Normal (Score: 12)",
-    receiptUrl: "https://receipt.stripe.com/ch_3MxsKSFkXvKuK6MM1N3",
-  },
-};
+import { getPayments } from "@/services/payments/payment.service";
 
-export default function AdminPaymentDetailsPage() {
-  const { id } = useParams();
-  const router = useRouter();
+export default function AdminPaymentsDashboard() {
+  // Collection Matrix State
+  const [payments, setPayments] = useState([]);
+  const [doctorId, setDoctorId] = useState("");
+  const [patientId, setPatientId] = useState("");
+  const [doctor, setDoctor] = useState({});
+  const [patient, setPatient] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Dynamic fallback mapping ensuring uninterrupted view initialization across mock parameters
-  const tx =
-    stripeTransactionsDatabase[id] ||
-    stripeTransactionsDatabase["ch_3MxsKSFkXvKuK6MM1N3"];
+  // Filtering & Pagination Parameters
+  const [filters, setFilters] = useState({
+    status: "",
+    page: 1,
+    limit: 10,
+  });
+
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 1,
+    total: 0,
+  });
+
+  useEffect(() => {
+    async function fetchSystemPayments() {
+      try {
+        setIsLoading(true);
+        // Invoke your frontend administrative payment fetcher service wrapper
+        const response = await getPayments(filters);
+
+        if (response?.success) {
+          setPayments(response.data || []);
+          if (response.meta) {
+            setPagination({
+              page: response.meta.page || 1,
+              totalPages: response.meta.totalPages || 1,
+              total: response.meta.total || 0,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed pulling administrative transaction logs:", error);
+        toast.error("Could not load system-wide payment records.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchSystemPayments();
+  }, [filters]);
+
+  const handleStatusChange = (statusValue) => {
+    setFilters((prev) => ({ ...prev, status: statusValue, page: 1 }));
+  };
+
+  const handlePageChange = (targetPage) => {
+    if (targetPage >= 1 && targetPage <= pagination.totalPages) {
+      setFilters((prev) => ({ ...prev, page: targetPage }));
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status?.toLowerCase()) {
+      case "succeeded":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <FiCheckCircle size={10} /> Succeeded
+          </span>
+        );
+      case "pending":
+      case "processing":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse">
+            <FiClock size={10} /> Processing
+          </span>
+        );
+      case "failed":
+      case "cancelled":
+        return (
+          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+            <FiXCircle size={10} /> Failed
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-500 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            {status}
+          </span>
+        );
+    }
+  };
 
   return (
-    <div className="space-y-6 animate-fadeIn">
-      {/* Structural Module Header Area */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-[13px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors group"
-        >
-          <RxArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
-          <span>Return to Clearing Ledger</span>
-        </button>
-
-        <span
-          className={`px-2.5 py-0.5 rounded-md text-[11px] font-black border uppercase tracking-wider ${
-            tx.status === "Succeeded"
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900"
-              : "bg-rose-50 text-rose-700 border-rose-200"
-          }`}
-        >
-          Stripe API State: {tx.status}
-        </span>
-      </div>
-
-      {/* Primary Layout Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Fee Distributions and Accounting Metrics Matrix */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Identity Metadata Anchor Panel */}
-          <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6 shadow-sm space-y-4">
-            <div>
-              <span className="text-[11px] font-mono font-bold text-slate-400">
-                Object Token: {id}
-              </span>
-              <h3 className="text-[14px] font-bold text-slate-900 dark:text-white uppercase tracking-wider mt-2">
-                Account Billing Origin
-              </h3>
-            </div>
-
-            <div className="p-4 bg-slate-50/50 dark:bg-slate-900/40 border border-[#E6F0FA] dark:border-slate-900 rounded-[12px]">
-              <div className="text-[13px] font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <span className="text-[11px] font-bold text-slate-400 uppercase block">
-                    Customer Profiling Target
-                  </span>
-                  <span className="font-bold text-slate-900 dark:text-white mt-0.5 block">
-                    {tx.customerName}
-                  </span>
-                </div>
-                <div className="sm:text-right">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase block">
-                    Stripe Link Email
-                  </span>
-                  <span className="font-mono font-bold text-slate-500 dark:text-slate-400 mt-0.5 block">
-                    {tx.email}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Internal Ledger Balancing Formula */}
-          <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6 shadow-sm space-y-4">
-            <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider border-b border-slate-50 dark:border-slate-900/60 pb-3">
-              Settlement Balance Ledger
-            </h3>
-
-            <div className="divide-y divide-slate-50 dark:divide-slate-900/40 text-[13px] font-medium space-y-3.5">
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-slate-400">Captured Charge Volume</span>
-                <span className="font-black text-slate-900 dark:text-white">
-                  ${tx.amount.toFixed(2)} {tx.currency}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-3.5">
-                <span className="text-slate-400">
-                  Platform Application Share (10%)
-                </span>
-                <span className="font-bold text-slate-600 dark:text-slate-400">
-                  -${tx.applicationFee.toFixed(2)} {tx.currency}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-3.5">
-                <span className="text-slate-400">
-                  Stripe Gateway Gateway Processing Fee
-                </span>
-                <span className="font-bold text-slate-600 dark:text-slate-400">
-                  -${tx.stripeFee.toFixed(2)} {tx.currency}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pt-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-3 rounded-xl">
-                <span className="text-slate-900 dark:text-slate-300 font-bold">
-                  Net System Provider Deposit Allocation
-                </span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400 text-[15px]">
-                  ${tx.netPayout.toFixed(2)} {tx.currency}
-                </span>
-              </div>
-            </div>
-          </div>
+    <div className="p-6 md:p-10 text-slate-900 dark:text-slate-100 max-w-7xl mx-auto space-y-8 animate-scaleIn">
+      {/* Admin Header Segment */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/60 dark:border-slate-800/60">
+        <div className="space-y-1">
+          <h1 className="text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-2">
+            <FiShield className="text-indigo-500" size={24} /> Financial Audit
+            Console
+          </h1>
+          <p className="text-xxs text-slate-400 dark:text-slate-500">
+            Global ledger overview. Monitor clearing pipeline attributes, check
+            matching references, and track billing states.
+          </p>
         </div>
 
-        {/* Security Processing Radar Side-Rail Logs */}
+        {/* Global Filter Matrix Column Selector */}
+        <div className="flex items-center gap-2">
+          <FiSliders className="text-slate-400 shrink-0" size={12} />
+          <select
+            value={filters.status}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            className="text-xs p-1.5 border rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer font-semibold"
+          >
+            <option value="">All Clearing Pools</option>
+            <option value="succeeded">Succeeded</option>
+            {/*
+              NOTE: values are comma-separated because "Pending" covers both
+              the "pending" and "processing" statuses, and "Failed" covers
+              both "failed" and "cancelled". The backend's getPayments query
+              splits this on "," and matches with $in, so both underlying
+              statuses are actually included instead of silently dropping
+              one of them.
+            */}
+            <option value="pending,processing">Pending / Processing</option>
+            <option value="failed,cancelled">Failed / Cancelled</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Main Content Render Core Block */}
+      {isLoading ? (
+        <div className="min-h-[40vh] flex items-center justify-center text-slate-400">
+          <div className="flex items-center gap-2 text-xs font-semibold tracking-wide animate-pulse">
+            <FiLoader className="animate-spin text-indigo-500" size={16} />
+            Parsing systemic transaction metadata accounts...
+          </div>
+        </div>
+      ) : payments.length === 0 ? (
+        <div className="border border-dashed rounded-2xl p-16 text-center border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/20 shadow-sm max-w-md mx-auto space-y-3">
+          <FiDollarSign
+            className="mx-auto text-slate-300 dark:text-slate-700"
+            size={32}
+          />
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              No transactions recorded
+            </p>
+            <p className="text-xxs text-slate-400 dark:text-slate-500 leading-relaxed">
+              No clearance references matched your selection scope inside the
+              MongoDB collection framework index.
+            </p>
+          </div>
+        </div>
+      ) : (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6 shadow-sm space-y-4">
-            <h3 className="text-[13px] font-bold uppercase tracking-wider text-slate-900 dark:text-white">
-              Stripe Radar Telemetry
-            </h3>
+          <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 backdrop-blur-md rounded-2xl shadow-sm">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold bg-slate-50/50 dark:bg-slate-950/40">
+                  <th className="p-4">Transaction Reference</th>
+                  <th className="p-4">Patient Client</th>
+                  <th className="p-4">Assigned Specialist</th>
+                  <th className="p-4">Settled Gross</th>
+                  <th className="p-4">Pipeline Status</th>
+                  <th className="p-4 text-right">Stripe Audit</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium text-slate-600 dark:text-slate-400">
+                {payments.map((payment) => (
+                  <tr
+                    key={payment._id}
+                    className="hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-colors"
+                  >
+                    {/* Transaction Reference ID */}
+                    <td className="p-4 font-mono font-bold text-slate-800 dark:text-slate-200">
+                      {payment.transactionId}
+                    </td>
 
-            <div className="space-y-3.5 font-medium text-[13px]">
-              <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-900 pb-2.5">
-                <span className="text-slate-400 flex items-center gap-1.5">
-                  <RxCalendar className="w-4 h-4" /> Gateway Execution
-                </span>
-                <span className="text-slate-700 dark:text-slate-200 font-mono font-bold text-[12px]">
-                  {tx.date}
-                </span>
-              </div>
-              <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-900 pb-2.5">
-                <span className="text-slate-400 flex items-center gap-1.5">
-                  <RxCardStack className="w-4 h-4" /> Instrument Specification
-                </span>
-                <span className="text-slate-700 dark:text-slate-200 font-semibold">
-                  {tx.paymentMethod}
-                </span>
-              </div>
-              <div className="flex items-center justify-between border-b border-slate-50 dark:border-slate-900 pb-2.5">
-                <span className="text-slate-400 flex items-center gap-1.5">
-                  <LuLock className="w-4 h-4" /> Risk Evaluation
-                </span>
-                <span className="text-slate-700 dark:text-slate-200 font-semibold">
-                  {tx.riskEvaluation}
-                </span>
-              </div>
-              <div className="flex items-center justify-between pb-1">
-                <span className="text-slate-400 flex items-center gap-1.5">
-                  <RxActivityLog className="w-4 h-4" /> Payout Network
-                </span>
-                <span className="text-blue-600 dark:text-blue-400 font-bold">
-                  {tx.payoutStatus}
-                </span>
-              </div>
-            </div>
+                    {/* Patient Context Mapping */}
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                          <FiUser size={10} className="text-slate-400" />{" "}
+                          {payment.patientId?.name || "Deleted Client"}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-mono mt-0.5">
+                          {payment.patientId?.email || "N/A"}
+                        </span>
+                      </div>
+                    </td>
 
-            <a
-              href={tx.receiptUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full mt-2 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-[13px] rounded-[10px] transition-colors flex items-center justify-center gap-1.5 select-none"
-            >
-              <RxFileText className="w-4 h-4" /> Open Stripe Dashboard Invoice
-            </a>
+                    {/* Assigned Medical Specialist */}
+                    <td className="p-4">
+                      <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                        {payment.doctorId?.specialization ||
+                          "Clinical Consultation"}
+                      </span>
+                    </td>
+
+                    {/* Settled Gross Balance Amount */}
+                    <td className="p-4 font-black text-slate-900 dark:text-white">
+                      {payment.amount} {payment.currency?.toUpperCase()}
+                    </td>
+
+                    {/* Pipeline Status Clearance Flag */}
+                    <td className="p-4">{getStatusBadge(payment.status)}</td>
+
+                    {/* External Stripe Dashboard Audit Receipt Link */}
+                    <td className="p-4 text-right">
+                      {payment.receiptUrl ? (
+                        <a
+                          href={payment.receiptUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-500 hover:underline"
+                        >
+                          Invoice <FiExternalLink size={11} />
+                        </a>
+                      ) : (
+                        <span className="text-xxs text-slate-400 italic">
+                          No Link
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+
+          {/* Simple Clean Administrative Pagination Panel Matrix */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-end gap-2 text-xs">
+              <span className="text-xxs text-slate-400 font-medium mr-2">
+                Showing page {pagination.page} of {pagination.totalPages} (
+                {pagination.total} global files)
+              </span>
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40 transition-colors cursor-pointer"
+              >
+                <FiChevronLeft size={14} />
+              </button>
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+                className="p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 disabled:opacity-40 transition-colors cursor-pointer"
+              >
+                <FiChevronRight size={14} />
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

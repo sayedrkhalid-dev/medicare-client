@@ -1,322 +1,213 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  RxDashboard,
-  RxPerson,
-  RxCardStack,
-  RxCalendar,
-  RxFileText,
-  RxStar,
-  RxChevronRight,
-} from "react-icons/rx";
+import { useEffect, useState } from "react";
+import { RxCalendar, RxClock, RxFileText, RxPerson } from "react-icons/rx";
 
 import { getMyDoctorProfile } from "@/services/doctors/doctor.service";
+import { getDoctorAppointments } from "@/services/appointments/appointment.service";
+import {
+  getMySchedules,
+  deleteSchedule,
+} from "@/services/doctor-schedules/doctorSchedule.service";
+import { getMyPrescriptions } from "@/services/prescriptions/prescription.service";
 
-export default function DoctorOverviewPage() {
-  const [profile, setProfile] = useState(null);
+const toList = (res) => (Array.isArray(res) ? res : (res?.data ?? []));
+
+export default function DoctorDashboardHome() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
 
-  // Local state for appointments queue matching your UI breakdown
-  const [appointments, setAppointments] = useState([
-    {
-      id: "apt_01",
-      patientName: "Rahim Uddin",
-      time: "09:30 AM",
-      type: "Follow-up",
-      status: "Completed",
-    },
-    {
-      id: "apt_02",
-      patientName: "Sultana Razia",
-      time: "11:15 AM",
-      type: "New Consultation",
-      status: "In Progress",
-    },
-    {
-      id: "apt_03",
-      patientName: "Aishee Rahman",
-      time: "01:00 PM",
-      type: "Report Check",
-      status: "Pending",
-    },
-  ]);
+  const [profile, setProfile] = useState(null);
+  const [appointments, setAppointments] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+  const [prescriptions, setPrescriptions] = useState([]);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const [profileRes, appointmentsRes, schedulesRes, prescriptionsRes] =
+        await Promise.all([
+          getMyDoctorProfile(),
+          getDoctorAppointments(),
+          getMySchedules(),
+          // getMyPrescriptions({ limit: 5 }),
+        ]);
+
+      setProfile(profileRes?.data ?? profileRes);
+      setAppointments(toList(appointmentsRes));
+      setSchedules(toList(schedulesRes));
+      // setPrescriptions(toList(prescriptionsRes));
+    } catch (err) {
+      console.error("Failed to load doctor dashboard:", err);
+      setError(err.message || "Failed to load dashboard data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDoctorData = async () => {
-      try {
-        setLoading(true);
-        // Call the profile service function
-        const response = await getMyDoctorProfile();
-        // Assuming your API returns data directly or inside a data object (e.g., response.data)
-        setProfile(response || response);
-      } catch (err) {
-        console.error("Error fetching doctor data profile:", err);
-        setError("Failed to load dashboard data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDoctorData();
+    loadDashboard();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen w-full bg-[#F8FAFC] dark:bg-[#020617] flex items-center justify-center">
-        <div className="text-[16px] font-semibold text-[#008080] dark:text-[#3CD1C2] animate-pulse">
-          Loading Medicare Portal...
-        </div>
-      </div>
-    );
-  }
+  const handleDeleteSchedule = async (scheduleId) => {
+    if (!window.confirm("Delete this schedule slot?")) return;
+    try {
+      await deleteSchedule(scheduleId);
+      setSchedules((prev) =>
+        prev.filter((s) => (s._id || s.id) !== scheduleId),
+      );
+    } catch (err) {
+      console.error("Failed to delete schedule:", err);
+    }
+  };
 
-  if (error || !profile) {
-    return (
-      <div className="min-h-screen w-full bg-[#F8FAFC] dark:bg-[#020617] flex items-center justify-center">
-        <div className="p-6 rounded-[20px] bg-white/60 dark:bg-slate-950/50 backdrop-blur-md border border-white/30 text-center">
-          <p className="text-[16px] font-semibold text-rose-600 dark:text-rose-400">
-            {error || "Profile not found."}
-          </p>
-        </div>
-      </div>
-    );
+  if (loading) {
+    return <p className="text-sm text-slate-400">Loading dashboard...</p>;
   }
 
   return (
-    <div className="relative min-h-screen w-full bg-[#F8FAFC] text-[#1E3A8A] transition-colors duration-300 dark:bg-[#020617] dark:text-[#FFFFFF] overflow-x-hidden">
-      {/* --- Ambient Micro-Glow Layering --- */}
-      <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-[#E6F0FA]/40 dark:bg-slate-900/20 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-[#008080]/5 dark:bg-[#008080]/3 blur-3xl pointer-events-none" />
-
-      {/* --- Global Content Bound Wrapper --- */}
-      <div className="max-w-[1280px] mx-auto px-6 sm:px-8 py-8 lg:py-12 relative z-10">
-        {/* --- Header Section --- */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Doctor Portal / Overview
-              </span>
-              <span
-                className={`text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-[10px] ${
-                  profile.status === "APPROVED"
-                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400"
-                    : profile.status === "SUSPENDED"
-                      ? "bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-400"
-                      : "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400"
-                }`}
-              >
-                {profile.status || "PENDING"}
-              </span>
-            </div>
-            <h1 className="text-[36px] md:text-[52px] font-bold tracking-tight leading-[1.15] mt-1">
-              Medicare Dashboard
-            </h1>
-            <p className="text-[16px] font-normal leading-relaxed text-[#475569] dark:text-[#94A3B8] mt-2">
-              {profile.specialization} &bull; {profile.hospital}
-            </p>
-          </div>
-
-          <button className="rounded-[12px] text-[15px] font-semibold bg-[#008080] hover:bg-[#006666] dark:bg-[#3CD1C2] dark:hover:bg-[#2AB0A2] text-white dark:text-[#020617] px-6 py-3 shadow-md transition-all duration-200 ease-in-out active:scale-[0.98]">
-            View Active Shifts
-          </button>
-        </header>
-
-        {/* --- Metrics Dashboard Matrix --- */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {/* Card 1: Experience Years */}
-          <div className="rounded-[20px] bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg p-6 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                Experience Presence
-              </p>
-              <h3 className="text-[26px] font-bold tracking-tight mt-1 text-[#1E3A8A] dark:text-white">
-                {profile.experienceYears}{" "}
-                <span className="text-[16px] font-normal text-slate-500">
-                  Yrs
-                </span>
-              </h3>
-            </div>
-            <div className="p-3 rounded-[12px] bg-white/60 dark:bg-slate-950/50 border border-white/30 text-[#008080] dark:text-[#3CD1C2]">
-              <RxPerson className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* Card 2: Ratings */}
-          <div className="rounded-[20px] bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg p-6 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                Patient Evaluation
-              </p>
-              <h3 className="text-[26px] font-bold tracking-tight mt-1 text-[#1E3A8A] dark:text-white flex items-baseline gap-1">
-                {profile.rating ? profile.rating.toFixed(1) : "0.0"}{" "}
-                <span className="text-[13px] font-medium text-slate-500">
-                  ({profile.reviewCount || 0} reviews)
-                </span>
-              </h3>
-            </div>
-            <div className="p-3 rounded-[12px] bg-white/60 dark:bg-slate-950/50 border border-white/30 text-amber-500">
-              <RxStar className="w-6 h-6 fill-current" />
-            </div>
-          </div>
-
-          {/* Card 3: Consultation Fee */}
-          <div className="rounded-[20px] bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg p-6 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                Consultation Fee
-              </p>
-              <h3 className="text-[26px] font-bold tracking-tight mt-1 text-[#1E3A8A] dark:text-white">
-                ৳{profile.consultationFee}
-              </h3>
-            </div>
-            <div className="p-3 rounded-[12px] bg-white/60 dark:bg-slate-950/50 border border-white/30 text-[#008080] dark:text-[#3CD1C2]">
-              <RxCardStack className="w-6 h-6" />
-            </div>
-          </div>
-
-          {/* Card 4: Daily Active Snapshot Slots */}
-          <div className="rounded-[20px] bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg p-6 flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-[#475569] dark:text-[#94A3B8]">
-                Today's Slots
-              </p>
-              <h3 className="text-[26px] font-bold tracking-tight mt-1 text-[#1E3A8A] dark:text-white">
-                {appointments.length}{" "}
-                <span className="text-[16px] font-normal text-slate-500">
-                  Queued
-                </span>
-              </h3>
-            </div>
-            <div className="p-3 rounded-[12px] bg-white/60 dark:bg-slate-950/50 border border-white/30 text-[#008080] dark:text-[#3CD1C2]">
-              <RxCalendar className="w-6 h-6" />
-            </div>
-          </div>
-        </section>
-
-        {/* --- Main Contents Structural Layout Partition --- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Module Panel - Appointment Lists */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-[20px] bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-[20px] font-bold tracking-tight">
-                  Today's Appointment Schedule
-                </h2>
-                <button className="text-[13px] font-medium text-[#008080] dark:text-[#3CD1C2] hover:underline flex items-center gap-1 transition-all">
-                  View All Navigation <RxChevronRight />
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {appointments.map((apt) => (
-                  <div
-                    key={apt.id}
-                    className="p-4 rounded-[12px] bg-white/60 dark:bg-slate-950/50 border border-white/30 dark:border-white/5 flex items-center justify-between transition-all duration-200 hover:scale-[1.01]"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-[#E6F0FA] dark:bg-slate-900 flex items-center justify-center font-bold text-[13px] text-[#008080] dark:text-[#3CD1C2]">
-                        {apt.time.split(" ")[0]}
-                      </div>
-                      <div>
-                        <p className="text-[15px] font-semibold text-[#1E3A8A] dark:text-white">
-                          {apt.patientName}
-                        </p>
-                        <p className="text-[13px] text-[#475569] dark:text-[#94A3B8]">
-                          {apt.type} &bull; Scheduled Time: {apt.time}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`text-[11px] font-semibold px-3 py-1 rounded-[10px] ${
-                        apt.status === "Completed"
-                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400"
-                          : apt.status === "In Progress"
-                            ? "bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-400"
-                            : "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-400"
-                      }`}
-                    >
-                      {apt.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Profile Bio Section Panel */}
-            {profile.bio && (
-              <div className="rounded-[20px] bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg p-6">
-                <h2 className="text-[20px] font-bold tracking-tight mb-3">
-                  Professional Bio Statement
-                </h2>
-                <p className="text-[15px] font-normal leading-relaxed text-[#475569] dark:text-[#94A3B8]">
-                  {profile.bio}
-                </p>
-                {profile.languages && profile.languages.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {profile.languages.map((lang, index) => (
-                      <span
-                        key={index}
-                        className="text-[11px] font-semibold tracking-wider uppercase bg-white/60 dark:bg-slate-950/50 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-xl px-3 py-1 rounded-[10px]"
-                      >
-                        {lang}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Right Sidebar Columns */}
-          <div className="space-y-6">
-            <div className="rounded-[20px] bg-[#E6F0FA]/40 dark:bg-slate-950/40 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg p-6">
-              <h2 className="text-[20px] font-bold tracking-tight mb-4">
-                Quick Links
-              </h2>
-              <div className="grid grid-cols-1 gap-3">
-                <a
-                  href="/dashboard/doctor/schedules"
-                  className="flex items-center gap-3 p-3 rounded-[12px] bg-white/40 dark:bg-slate-900/40 border border-white/20 hover:bg-[#E6F0FA] dark:hover:bg-slate-900 transition-colors duration-200"
-                >
-                  <RxCardStack className="text-[#008080] dark:text-[#3CD1C2] w-5 h-5" />
-                  <span className="text-[15px] font-medium">Manage Slots</span>
-                </a>
-                <a
-                  href="/dashboard/doctor/prescriptions"
-                  className="flex items-center gap-3 p-3 rounded-[12px] bg-white/40 dark:bg-slate-900/40 border border-white/20 hover:bg-[#E6F0FA] dark:hover:bg-slate-900 transition-colors duration-200"
-                >
-                  <RxFileText className="text-[#008080] dark:text-[#3CD1C2] w-5 h-5" />
-                  <span className="text-[15px] font-medium">
-                    Write Prescription
-                  </span>
-                </a>
-                <a
-                  href="/dashboard/doctor/profile"
-                  className="flex items-center gap-3 p-3 rounded-[12px] bg-white/40 dark:bg-slate-900/40 border border-white/20 hover:bg-[#E6F0FA] dark:hover:bg-slate-900 transition-colors duration-200"
-                >
-                  <RxPerson className="text-[#008080] dark:text-[#3CD1C2] w-5 h-5" />
-                  <span className="text-[15px] font-medium">
-                    Profile Parameters
-                  </span>
-                </a>
-              </div>
-            </div>
-
-            {/* BMDC Verification Info Badge */}
-            <div className="rounded-[20px] bg-white/60 dark:bg-slate-950/50 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-xl p-6 text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                BMDC Registration Identity
-              </p>
-              <p className="text-[18px] font-semibold tracking-tight text-[#1E3A8A] dark:text-[#3CD1C2] mt-1 font-mono">
-                {profile.bmdcNumber}
-              </p>
-            </div>
-          </div>
+    <div className="space-y-8">
+      <div className="flex items-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-teal-50 dark:bg-teal-950/30 flex items-center justify-center text-teal-600 dark:text-teal-400">
+          <RxPerson className="w-6 h-6" />
         </div>
+        <div>
+          <h2 className="text-[20px] font-bold text-slate-900 dark:text-white">
+            {profile?.name || profile?.user?.name || "Welcome back, Doctor"}
+          </h2>
+          <p className="text-[13px] text-slate-400">
+            {profile?.specialization || "Manage your appointments and schedule"}
+          </p>
+        </div>
+      </div>
+
+      {error && (
+        <p className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg p-3">
+          {error}
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-5">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            Appointments
+          </span>
+          <h3 className="text-[26px] font-extrabold text-slate-900 dark:text-white mt-2">
+            {appointments.length}
+          </h3>
+        </div>
+        <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-5">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            Schedule Slots
+          </span>
+          <h3 className="text-[26px] font-extrabold text-slate-900 dark:text-white mt-2">
+            {schedules.length}
+          </h3>
+        </div>
+        <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-5">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+            Recent Prescriptions
+          </span>
+          <h3 className="text-[26px] font-extrabold text-slate-900 dark:text-white mt-2">
+            {prescriptions.length}
+          </h3>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <RxCalendar className="w-4 h-4 text-slate-400" />
+            <h3 className="text-[14px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+              Upcoming Appointments
+            </h3>
+          </div>
+          {appointments.length === 0 ? (
+            <p className="text-[13px] text-slate-400">No appointments yet.</p>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-900">
+              {appointments.map((apt) => (
+                <div key={apt._id || apt.id} className="py-3">
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    {apt.patientName || apt.patient?.name || "Patient"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {apt.date || apt.appointmentDate} ·{" "}
+                    {apt.time || apt.appointmentTime} · {apt.status}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <RxClock className="w-4 h-4 text-slate-400" />
+            <h3 className="text-[14px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+              My Schedule
+            </h3>
+          </div>
+          {schedules.length === 0 ? (
+            <p className="text-[13px] text-slate-400">No schedule slots set.</p>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-900">
+              {schedules.map((slot) => {
+                const id = slot._id || slot.id;
+                return (
+                  <div
+                    key={id}
+                    className="flex items-center justify-between py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                        {slot.day || slot.dayOfWeek}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        {slot.startTime} - {slot.endTime}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteSchedule(id)}
+                      className="text-xs font-semibold text-red-500 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-[#020617] border border-[#E6F0FA] dark:border-slate-900 rounded-[16px] p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <RxFileText className="w-4 h-4 text-slate-400" />
+          <h3 className="text-[14px] font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+            Recent Prescriptions
+          </h3>
+        </div>
+        {prescriptions.length === 0 ? (
+          <p className="text-[13px] text-slate-400">
+            No prescriptions issued yet.
+          </p>
+        ) : (
+          <div className="divide-y divide-slate-100 dark:divide-slate-900">
+            {prescriptions.map((rx) => (
+              <div key={rx._id || rx.id} className="py-3">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  {rx.patientName || rx.patient?.name || "Patient"}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {rx.diagnosis || rx.notes || "—"}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

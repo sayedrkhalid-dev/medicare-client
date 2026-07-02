@@ -14,10 +14,8 @@ export const createPrescription = async (payload) => {
 /**
  * Get my prescriptions
  */
-export const getMyPrescriptions = async (params = {}) => {
-  const query = buildQuery(params);
-
-  return fetcher(`/prescriptions/me?${query}`);
+export const getMyPrescriptions = async (id) => {
+  return fetcher(`/prescriptions/me?${id}`);
 };
 
 /**

@@ -2,17 +2,30 @@ import { fetcher } from "@/lib/fetcher";
 import { buildQuery } from "@/lib/query";
 
 /**
- * Create payment
+ * Create Stripe checkout session
+ *
+ * payload: { doctorId, appointmentDate, appointmentTime, symptoms? }
+ * Returns: { sessionId, checkoutUrl }
  */
-export const createPayment = async (payload) => {
-  return fetcher("/payments", {
+export const createCheckoutSession = async (payload) => {
+  return fetcher("/payments/checkout", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 };
 
 /**
- * Get my payments
+ * Verify checkout session
+ *
+ * Poll this on the payment success page until status is "success".
+ * Possible statuses: "pending" | "processing" | "success"
+ */
+export const verifyCheckoutSession = async (sessionId) => {
+  return fetcher(`/payments/verify/${sessionId}`);
+};
+
+/**
+ * Get my payments (patient)
  */
 export const getMyPayments = async (params = {}) => {
   const query = buildQuery(params);
@@ -22,25 +35,19 @@ export const getMyPayments = async (params = {}) => {
 
 /**
  * Get payment by ID
+ *
+ * Patient: only their own payment.
+ * Admin: any payment.
  */
 export const getPaymentById = async (paymentId) => {
   return fetcher(`/payments/${paymentId}`);
 };
 
 /**
- * Get all payments
+ * Get all payments (admin)
  */
 export const getPayments = async (params = {}) => {
   const query = buildQuery(params);
 
   return fetcher(`/payments?${query}`);
-};
-
-/**
- * Verify payment (Future)
- */
-export const verifyPayment = async (paymentId) => {
-  return fetcher(`/payments/${paymentId}/verify`, {
-    method: "PATCH",
-  });
 };

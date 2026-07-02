@@ -140,13 +140,13 @@ export default function UserManagementPage() {
   };
 
   return (
-    /* 60% Dominant Color Rule: Light Background (#FFFFFF) | Dark Background Slate-950 */
-    <div className="space-y-4 max-w-[1280px] mx-auto p-4 min-h-screen bg-[#FFFFFF] dark:bg-slate-950 text-slate-600 dark:text-slate-400 transition-colors duration-300 relative">
-      {/* Ambient Micro-Glow Framework elements mapping from system architecture guidelines */}
+    /* FIXED: Added overflow-x-hidden to cut off glow elements outside page layout structure */
+    <div className="space-y-4 max-w-[1280px] mx-auto p-4 min-h-screen bg-[#FFFFFF] dark:bg-slate-950 text-slate-600 dark:text-slate-400 transition-colors duration-300 relative overflow-x-hidden">
+      {/* Ambient Micro-Glow Framework elements */}
       <div className="absolute top-0 right-0 -mt-24 -mr-24 h-96 w-96 rounded-full bg-[#E6F0FA]/40 dark:bg-slate-900/20 blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -mb-24 -ml-24 h-96 w-96 rounded-full bg-[#008080]/5 dark:bg-[#008080]/3 blur-3xl pointer-events-none" />
 
-      {/* Filters & Control Block Framework - Implements Custom Border Overlay Shades */}
+      {/* Filters & Control Block Framework */}
       <div className="relative z-10 bg-[#FFFFFF] dark:bg-slate-950 border border-[#E6F0FA] dark:border-slate-900 p-4 rounded-[20px] shadow-sm space-y-4 transition-colors duration-300">
         <div className="flex flex-col lg:flex-row gap-3">
           <div className="relative flex-1 w-full">
@@ -221,9 +221,9 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      {/* Main Table Content Panel configured with exact Radius layout limits */}
+      {/* Main Table Content Panel */}
       <div className="relative z-10 bg-[#FFFFFF] dark:bg-slate-950 border border-[#E6F0FA] dark:border-slate-900 rounded-[20px] shadow-sm overflow-hidden transition-colors duration-300">
-        <div className="overflow-x-auto w-full">
+        <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[750px] md:min-w-0">
             <thead>
               <tr className="bg-[#F8FAFC] dark:bg-slate-900/50 border-b border-[#E6F0FA] dark:border-slate-900 text-[11px] font-bold uppercase tracking-wider text-[#008080] dark:text-slate-400 select-none">
@@ -250,9 +250,6 @@ export default function UserManagementPage() {
                 </tr>
               ) : users.length > 0 ? (
                 users.map((user) => {
-                  // FIX #5: key/loading-state and the click handler now agree on
-                  // which id they're using. If _id is missing, the handler will
-                  // catch it and toast instead of silently doing nothing.
                   const currentUserId = user._id || user.email;
                   const isActioning = actionLoadingId === currentUserId;
                   const isActiveState =
@@ -400,9 +397,6 @@ export default function UserManagementPage() {
             </span>
 
             <div className="flex items-center gap-1 w-full sm:w-auto justify-center">
-              {/* FIX #2: disabled props restored so buttons actually stop
-                  working (and visually grey out) at the start/end of the
-                  range, instead of staying clickable forever. */}
               <button
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1}
@@ -445,7 +439,7 @@ export default function UserManagementPage() {
         )}
       </div>
 
-      {/* FIX #1: the self-suspend alert modal, previously set in state but never rendered */}
+      {/* Self-Suspend Alert Modal */}
       {isSelfSuspending && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 select-none animate-fadeIn"

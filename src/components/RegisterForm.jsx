@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   FiUser,
   FiActivity,
@@ -14,10 +15,12 @@ import {
   FiMail,
 } from "react-icons/fi";
 
-import { authClient } from "@/lib/auth-client";
+import { register } from "@/services/auth/auth.service";
 
 const RegisterForm = () => {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [registerData, setRegisterData] = useState({
     firstName: "",
     lastName: "",
@@ -82,36 +85,33 @@ const RegisterForm = () => {
     e.preventDefault();
     setSubmitError("");
 
-    if (validateForm()) {
-      // authClient handles the API request lifecycle seamlessly
-      const { data, error } = await authClient.signUp.email({
+    if (!validateForm()) {
+      setSubmitError(
+        "Please correct the errors indicated below before resubmitting.",
+      );
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const data = await register({
+        name: `${registerData.firstName.trim()} ${registerData.lastName.trim()}`,
         email: registerData.email,
         password: registerData.password,
-        name: `${registerData.firstName.trim()} ${registerData.lastName.trim()}`,
         image: registerData.imageUrl.trim() || undefined,
-
         role: registerData.role,
         gender: registerData.gender,
       });
 
-      if (error) {
-        // better-auth returns structured error objects (e.g., error.message or error.status)
-        setSubmitError(
-          error.message || "An authentication schema error occurred.",
-        );
-        console.error("Registration error detail:", error);
-        return;
-      }
-
-      // Success! The session cookie is managed automatically by the client helper
       console.log("Registration successful! Session created:", data);
 
-      // Redirect user to workspace or profile home
-      // window.location.href = "/dashboard";
-    } else {
-      setSubmitError(
-        "Please correct the errors indicated below before resubmitting.",
-      );
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      setSubmitError(err.message || "An authentication schema error occurred.");
+      console.error("Registration error detail:", err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -432,9 +432,10 @@ const RegisterForm = () => {
       {/* SUBMIT BUTTON */}
       <button
         type="submit"
-        className="w-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 py-2.5 rounded-lg font-medium text-sm hover:bg-slate-800 dark:hover:bg-slate-200 transition-all active:scale-[0.98]"
+        disabled={submitting}
+        className="w-full bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 py-2.5 rounded-lg font-medium text-sm hover:bg-slate-800 dark:hover:bg-slate-200 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        Sign Up
+        {submitting ? "Creating account..." : "Sign Up"}
       </button>
 
       {/* OR PORTAL SEPARATOR */}

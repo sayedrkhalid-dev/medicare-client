@@ -15,6 +15,8 @@ export const register = async (payload) => {
     address: payload.address,
     dateOfBirth: payload.dateOfBirth,
     bloodGroup: payload.bloodGroup,
+
+    callbackURL: "/",
   });
 
   if (error) {
@@ -31,6 +33,7 @@ export const login = async (payload) => {
   const { data, error } = await authClient.signIn.email({
     email: payload.email,
     password: payload.password,
+    callbackURL: "/",
   });
 
   if (error) {
@@ -42,9 +45,18 @@ export const login = async (payload) => {
 
 /**
  * Logout user
+ *
+ * NOTE: better-auth's signOut does NOT auto-redirect via callbackURL the way
+ * signIn/signUp do. Navigation must be triggered manually in onSuccess.
  */
 export const logout = async () => {
-  const { data, error } = await authClient.signOut();
+  const { data, error } = await authClient.signOut({
+    fetchOptions: {
+      onSuccess: () => {
+        window.location.href = "/login";
+      },
+    },
+  });
 
   if (error) {
     throw new Error(error.message);
@@ -59,6 +71,7 @@ export const logout = async () => {
 export const loginWithGoogle = async () => {
   const { data, error } = await authClient.signIn.social({
     provider: "google",
+    callbackURL: "/",
   });
 
   if (error) {

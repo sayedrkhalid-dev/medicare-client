@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import logo from "../../public/logo.png";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -26,6 +26,7 @@ import { authClient } from "@/lib/auth-client";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { isDark, toggleTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -85,12 +86,19 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await authClient.signOut();
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            router.push("/login");
+            router.refresh();
+          },
+        },
+      });
       setUser(null);
       setIsDropdownOpen(false);
       setIsMenuOpen(false);
     } catch (err) {
-      console.error("Logout runtime context failure:", err);
+      console.error("Logout failed:", err);
     }
   };
 
@@ -168,9 +176,6 @@ export default function Navbar() {
             className="p-2.5 rounded-[12px] text-slate-600 hover:text-[#1E3A8A] hover:bg-[#E6F0FA] dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-900 transition-all active:scale-95 cursor-pointer"
             aria-label="Toggle Layout Theme"
           >
-            {/* Only render the reactive icon if mounted on the client. 
-               Renders a neutral placeholder skeleton or generic icon on the server.
-            */}
             {mounted ? (
               isDark ? (
                 <FiSun className="w-5 h-5 text-amber-400" />
@@ -178,7 +183,7 @@ export default function Navbar() {
                 <FiMoon className="w-5 h-5" />
               )
             ) : (
-              <div className="w-5 h-5" /> // Blank placeholder layout-box
+              <div className="w-5 h-5" />
             )}
           </button>
 
